@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Log Minyak</title>
 <meta name="description" content="Rekod isian minyak, kecekapan dan kuota BUDI95 untuk semua kenderaan.">
-<meta name="theme-color" content="#0F766E" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0B1211" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#B42318" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#130B0C" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,12 +27,12 @@
 /* ===== Theme tokens (single source for every colour/space/radius) ===== */
 :root{
   color-scheme: light;
-  --bg:#F3F6F5; --surface:#FFFFFF; --surface-2:#EDF2F0; --border:#DFE7E4;
-  --text:#0E1B19; --text-2:#465753; --text-3:#6F807C;
-  --primary:#0F766E; --primary-ink:#FFFFFF; --primary-soft:#D5EFEA; --primary-text:#0B5D57;
-  --good:#15803D; --good-soft:#DCF3E3; --warn:#B45309; --warn-soft:#FDEBD3; --bad:#B91C1C; --bad-soft:#FBE0E0;
+  --bg:#F7F4F4; --surface:#FFFFFF; --surface-2:#F2ECEC; --border:#E8DFDF;
+  --text:#1C1213; --text-2:#5A4A4C; --text-3:#85777A;
+  --primary:#B42318; --primary-ink:#FFFFFF; --primary-soft:#FCE4E1; --primary-text:#9B1C13;
+  --good:#15803D; --good-soft:#DCF3E3; --warn:#A16207; --warn-soft:#FBF0D0; --bad:#C2410C; --bad-soft:#FDE8D9;
   --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300; --c7:#6250d6; --c8:#e34948;
-  --shadow:0 1px 2px rgba(14,27,25,.05),0 6px 20px rgba(14,27,25,.06);
+  --shadow:0 1px 2px rgba(28,18,19,.05),0 6px 20px rgba(28,18,19,.06);
   --r-lg:20px; --r:14px; --r-sm:10px; --r-pill:999px;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
   --nav-h:68px;
@@ -41,20 +41,20 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --bg:#0B1211; --surface:#131C1A; --surface-2:#1A2523; --border:#25322F;
-    --text:#E8F1EF; --text-2:#A8B8B4; --text-3:#7F908C;
-    --primary:#2CB8A8; --primary-ink:#04201D; --primary-soft:#123B36; --primary-text:#5FD3C4;
-    --good:#4ADE80; --good-soft:#123222; --warn:#FBBF24; --warn-soft:#3A2A0C; --bad:#F87171; --bad-soft:#3B1515;
+    --bg:#130B0C; --surface:#1D1314; --surface-2:#261B1C; --border:#382829;
+    --text:#F4ECEC; --text-2:#C1B0B1; --text-3:#918081;
+    --primary:#F26B5E; --primary-ink:#2B0603; --primary-soft:#3F1714; --primary-text:#FF9187;
+    --good:#4ADE80; --good-soft:#123222; --warn:#FACC15; --warn-soft:#3A300C; --bad:#FB923C; --bad-soft:#3A1E0C;
     --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --bg:#0B1211; --surface:#131C1A; --surface-2:#1A2523; --border:#25322F;
-  --text:#E8F1EF; --text-2:#A8B8B4; --text-3:#7F908C;
-  --primary:#2CB8A8; --primary-ink:#04201D; --primary-soft:#123B36; --primary-text:#5FD3C4;
-  --good:#4ADE80; --good-soft:#123222; --warn:#FBBF24; --warn-soft:#3A2A0C; --bad:#F87171; --bad-soft:#3B1515;
+  --bg:#130B0C; --surface:#1D1314; --surface-2:#261B1C; --border:#382829;
+    --text:#F4ECEC; --text-2:#C1B0B1; --text-3:#918081;
+    --primary:#F26B5E; --primary-ink:#2B0603; --primary-soft:#3F1714; --primary-text:#FF9187;
+    --good:#4ADE80; --good-soft:#123222; --warn:#FACC15; --warn-soft:#3A300C; --bad:#FB923C; --bad-soft:#3A1E0C;
   --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
 }
@@ -104,7 +104,7 @@ main{max-width:960px;margin:0 auto;padding:var(--s2) var(--s4) var(--s4)}
 
 /* ===== Cards ===== */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);box-shadow:var(--shadow)}
-.hero{background:linear-gradient(140deg,var(--primary),color-mix(in srgb,var(--primary) 70%,#0b2f2b));color:#fff;border:0}
+.hero{background:linear-gradient(140deg,var(--primary),color-mix(in srgb,var(--primary) 62%,#2a0806));color:#fff;border:0}
 .hero .label{opacity:.85;font-weight:600;font-size:.85rem}
 .hero .big{font-size:2.3rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:var(--s1) 0}
 .hero .delta{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.16);padding:3px 10px;border-radius:var(--r-pill);font-size:.8rem;font-weight:600}
@@ -122,7 +122,7 @@ main{max-width:960px;margin:0 auto;padding:var(--s2) var(--s4) var(--s4)}
 .q-head{display:flex;justify-content:space-between;align-items:baseline;font-size:.88rem;margin-bottom:6px}
 .q-head b{font-weight:700}
 .bar{height:10px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
-.bar>i{display:block;height:100%;border-radius:var(--r-pill);background:var(--primary);transition:width .5s ease}
+.bar>i{display:block;height:100%;border-radius:var(--r-pill);background:var(--good);transition:width .5s ease}
 .bar>i.warn{background:var(--warn)} .bar>i.bad{background:var(--bad)}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-pill);font-size:.74rem;font-weight:700}
 .b-good{background:var(--good-soft);color:var(--good)} .b-warn{background:var(--warn-soft);color:var(--warn)} .b-bad{background:var(--bad-soft);color:var(--bad)} .b-neutral{background:var(--surface-2);color:var(--text-2)}
@@ -183,7 +183,7 @@ table.t td.r,table.t th.r{text-align:right}
 /* ===== Sheet (dialog) ===== */
 dialog.sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:560px;max-height:92dvh;border-radius:24px 24px 0 0;background:var(--surface);color:var(--text);box-shadow:0 -10px 40px rgba(0,0,0,.25)}
 @media(min-width:760px){dialog.sheet{margin:auto;border-radius:24px}}
-dialog.sheet::backdrop{background:rgba(5,15,13,.5);backdrop-filter:blur(2px)}
+dialog.sheet::backdrop{background:rgba(20,6,6,.5);backdrop-filter:blur(2px)}
 dialog.sheet[open]{animation:up .22s ease}
 @keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
 .sheet-h{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s5) var(--s2);position:sticky;top:0;background:var(--surface);z-index:2}
@@ -254,8 +254,11 @@ dialog.sheet[open]{animation:up .22s ease}
   <section class="view" id="v-home" aria-label="Utama"></section>
   <!-- REKOD -->
   <section class="view" id="v-logs" aria-label="Rekod">
+    <div class="seg" id="recTabs" role="tablist" style="margin-bottom:var(--s3)"><button type="button" data-rec="fuel" class="on">Isian minyak</button><button type="button" data-rec="service">Servis</button></div>
+    <div id="fuelTools">
     <div class="search"><i class="bi bi-search faint"></i><input id="q" type="search" placeholder="Cari stesen, nota, tarikh…" aria-label="Cari rekod"></div>
     <div class="filters" id="logFilters"></div>
+    </div>
     <div id="logList" class="list" style="margin-top:var(--s2)"></div>
   </section>
   <!-- BULANAN -->
@@ -327,6 +330,33 @@ dialog.sheet[open]{animation:up .22s ease}
   </form>
 </dialog>
 
+<!-- Service sheet -->
+<dialog class="sheet" id="svcSheet" aria-labelledby="svcTitle">
+  <div class="sheet-h"><h2 id="svcTitle">Rekod servis</h2><button class="icon-btn" data-close aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
+  <form class="sheet-b" id="svcForm" novalidate>
+    <input type="hidden" id="sId">
+    <div class="field"><label for="sVeh">Kenderaan</label><select class="input" id="sVeh"></select></div>
+    <div class="two">
+      <div class="field"><label for="sDate">Tarikh</label><input class="input" type="date" id="sDate" required></div>
+      <div class="field"><label for="sOdo">Mileage</label><div class="input-suf"><input class="input num" type="number" inputmode="numeric" id="sOdo"><span>km</span></div></div>
+    </div>
+    <div class="field"><label for="sType">Jenis servis</label><input class="input" id="sType" list="svcTypes" placeholder="cth. Servis + Inspection"><datalist id="svcTypes"></datalist></div>
+    <div class="two">
+      <div class="field"><label for="sLabour">Kos upah</label><div class="input-pre"><span>RM</span><input class="input num" type="number" inputmode="decimal" step="0.01" id="sLabour"></div></div>
+      <div class="field"><label for="sParts">Kos parts</label><div class="input-pre"><span>RM</span><input class="input num" type="number" inputmode="decimal" step="0.01" id="sParts"></div></div>
+    </div>
+    <div class="field"><label for="sTotal">Jumlah</label><div class="input-pre"><span>RM</span><input class="input big num" type="number" inputmode="decimal" step="0.01" id="sTotal"></div><span class="hint">Dikira automatik dari upah + parts; boleh diubah.</span></div>
+    <div class="field"><label for="sItems">Item servis</label><textarea class="input" id="sItems" rows="3" placeholder="cth. Engine Oil, Oil Filter, Cabin Filter"></textarea></div>
+    <div class="two">
+      <div class="field"><label for="sBattery">Bateri</label><input class="input" id="sBattery" placeholder="cth. 100%"></div>
+      <div class="field"><label for="sTyre">Bunga tayar</label><input class="input" id="sTyre" placeholder="cth. 5mm"></div>
+    </div>
+    <div class="field"><label for="sNotes">Nota <span class="faint">(pilihan)</span></label><input class="input" id="sNotes"></div>
+    <p class="err" id="svcErr" role="alert"></p>
+    <div class="btn-row"><button type="button" class="btn btn-danger hidden" id="btnDelSvc" aria-label="Padam rekod servis"><i class="bi bi-trash"></i></button><button class="btn btn-primary" id="btnSaveSvc" type="submit"><i class="bi bi-check2"></i>Simpan servis</button></div>
+  </form>
+</dialog>
+
 <!-- Confirm -->
 <dialog class="sheet" id="confirmSheet" style="max-width:420px">
   <div class="sheet-b" style="padding-top:var(--s5)">
@@ -365,6 +395,7 @@ const S = {
   view: 'home',
   queue: LS.get('queue', []),
   logFilter: { isian:'', owner:'' },
+  rec: 'fuel',
   year: new Date().getFullYear(),
   range: LS.get('range', 12),
   charts: {},
@@ -470,6 +501,29 @@ window.addEventListener('offline', () => setSync('off','Luar talian'));
 function vehById(id){ return S.data.vehicles.find(v=>v.id===id); }
 function vehIndex(id){ return Math.max(0, S.data.vehicles.findIndex(v=>v.id===id)); }
 function vehColor(id){ const v = vehById(id); return (v && v.color && v.color.startsWith('var')) ? v.color : SLOT(vehIndex(id)); }
+function services(){ return (S.data && S.data.services) || []; }
+function scopedSvc(){ return S.veh==='ALL' ? services() : services().filter(x=>x.vehicleId===S.veh); }
+function dLabel(d){ return +d.slice(8)+' '+MONTHS[+d.slice(5,7)-1]+' '+d.slice(0,4); }
+function serviceCards(){
+  const interval = num(set().SERVICE_INTERVAL_KM) || 10000;
+  const vids = [...new Set(scopedSvc().map(x=>x.vehicleId))];
+  return vids.map(id => {
+    const list = services().filter(x=>x.vehicleId===id).sort((a,b)=>a.date<b.date?-1:1);
+    const last = list[list.length-1]; if (!last) return '';
+    const lastFuel = sortLogs(S.data.logs.filter(l=>l.vehicleId===id)).pop();
+    const curOdo = Math.max(lastFuel ? lastFuel.odo : 0, last.odo||0);
+    const lastOdo = Math.max(...list.map(x=>x.odo||0));
+    const next = lastOdo + interval, left = next - curOdo, pct = Math.max(0, Math.min(100, (curOdo-lastOdo)/interval*100));
+    const cls = left <= 0 ? 'bad' : left <= 1000 ? 'warn' : '';
+    const yr = today().slice(0,4), yrCost = list.filter(x=>x.date.startsWith(yr)).reduce((a,x)=>a+(x.total||0),0);
+    const v = vehById(id);
+    return `<div class="card">
+      <div class="q-head"><span><b>${esc(last.type||'Servis')}</b> <span class="faint">· ${dLabel(last.date)}</span></span><span class="num faint">${S.veh==='ALL'&&v?esc(v.name):''}</span></div>
+      <div class="bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="Jarak sejak servis"><i class="${cls}" style="width:${pct}%"></i></div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-top:6px" class="num"><span class="muted">${f0(curOdo-lastOdo)} km sejak servis</span><b style="color:var(--${cls==='bad'?'bad':cls==='warn'?'warn':'text'})">${left>0 ? 'Baki '+f0(left)+' km' : 'Lewat '+f0(-left)+' km'}</b></div>
+      <div class="faint" style="font-size:.76rem;margin-top:4px">Servis seterusnya ≈ ${f0(next)} km · kos servis ${yr}: ${rm(yrCost)}</div></div>`;
+  }).join('');
+}
 function scoped(){ const L = S.data.logs; return S.veh==='ALL' ? L : L.filter(l=>l.vehicleId===S.veh); }
 function sortLogs(L){ return L.slice().sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:a.odo-b.odo); }
 function isBudi(l){ return l.fuelType==='RON95' && l.owner && Math.abs(l.price - num(set().RON95_BUDI_PRICE)) < 0.006; }
@@ -603,6 +657,8 @@ function renderHome(){
       ${cad}
     </div>
 
+    ${scopedSvc().length ? '<div class="sec-title">Servis <button class="link" data-goto-svc="1">Semua <i class="bi bi-chevron-right"></i></button></div><div class="grid g-md-2">'+serviceCards()+'</div>' : ''}
+
     <div class="sec-title">Trend km/L <button class="link" data-goto="charts">Lihat graf <i class="bi bi-chevron-right"></i></button></div>
     <div class="card chart-card"><div class="chart-box" style="height:180px"><canvas id="chHomeTrend" aria-label="Trend kecekapan km/L 15 isian penuh terakhir" role="img"></canvas></div></div>
 
@@ -639,6 +695,9 @@ function logRow(l, avg){
 }
 
 function renderLogs(){
+  document.querySelectorAll('#recTabs button').forEach(b=>b.classList.toggle('on', b.dataset.rec===S.rec));
+  $('#fuelTools').classList.toggle('hidden', S.rec!=='fuel');
+  if (S.rec==='service') return renderServices();
   const all = scoped();
   const q = $('#q').value.trim().toLowerCase();
   const f = S.logFilter;
@@ -655,6 +714,49 @@ function renderLogs(){
     const g = groups[k], tot = g.reduce((s,l)=>s+l.paid,0), lit = g.reduce((s,l)=>s+l.litre,0);
     return `<div class="month-head">${mFull(k)}<span class="num">${rm(tot)} · ${f1(lit)} L</span></div>` + g.map(l=>logRow(l, avg)).join('');
   }).join('');
+}
+
+function renderServices(){
+  const L = scopedSvc().slice().sort((a,b)=>a.date<b.date?1:-1);
+  if (!L.length){ $('#logList').innerHTML = `<div class="empty"><i class="bi bi-wrench-adjustable"></i><h3>Belum ada rekod servis</h3><p>Tekan + untuk merekod servis kenderaan.</p></div>`; return; }
+  const tot = L.reduce((a,x)=>a+(x.total||0),0);
+  $('#logList').innerHTML = serviceCards() + `<div class="month-head" style="top:auto;position:static">${L.length} rekod servis<span class="num">${rm(tot)}</span></div>` + L.map(x => {
+    const d = new Date(x.date), v = vehById(x.vehicleId);
+    return `<button class="row" data-svc="${esc(x.id)}">
+      <div class="date"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}</span></div>
+      <div class="mid"><div class="t">${S.veh==='ALL'&&v?`<span class="vdot" style="background:${vehColor(v.id)}"></span>`:''}${esc(x.type||'Servis')}</div>
+        <div class="s">${esc([x.odo?f0(x.odo)+' km':'', x.items].filter(Boolean).join(' · '))}</div></div>
+      <div class="end"><b class="num">${x.total!=null?rm(x.total):'—'}</b><span class="faint" style="font-size:.75rem">${esc([x.battery&&'Bateri '+x.battery, x.tyre].filter(Boolean).join(' · '))}</span></div></button>`;
+  }).join('');
+}
+function openService(id){
+  if (!S.data) return;
+  const x = id && services().find(s=>s.id===id);
+  const vs = S.data.vehicles.filter(v=>v.active || (x && x.vehicleId===v.id));
+  if (!vs.length){ openVeh(); return toast('Tambah kenderaan dahulu'); }
+  $('#sVeh').innerHTML = vs.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
+  $('#svcTypes').innerHTML = [...new Set(services().map(s=>s.type).filter(Boolean))].map(t=>`<option value="${esc(t)}">`).join('');
+  $('#svcErr').textContent = ''; $('#svcForm').reset();
+  $('#svcTitle').textContent = x ? 'Kemaskini servis' : 'Rekod servis';
+  $('#sId').value = x ? x.id : '';
+  $('#sVeh').value = x ? x.vehicleId : (S.veh!=='ALL' && vs.some(v=>v.id===S.veh) ? S.veh : vs[0].id);
+  $('#sDate').value = x ? x.date : today();
+  const lf = sortLogs(S.data.logs.filter(l=>l.vehicleId===$('#sVeh').value)).pop();
+  $('#sOdo').value = x ? (x.odo||'') : (lf ? lf.odo : '');
+  if (x){ $('#sType').value=x.type; $('#sLabour').value=x.labour??''; $('#sParts').value=x.parts??''; $('#sTotal').value=x.total??''; $('#sItems').value=x.items; $('#sBattery').value=x.battery; $('#sTyre').value=x.tyre; $('#sNotes').value=x.notes; }
+  $('#btnDelSvc').classList.toggle('hidden', !x);
+  $('#svcSheet').showModal();
+}
+async function saveService(e){
+  e.preventDefault();
+  const p = { id: $('#sId').value, vehicleId: $('#sVeh').value, date: $('#sDate').value, odo: $('#sOdo').value, type: $('#sType').value.trim(),
+    labour: $('#sLabour').value, parts: $('#sParts').value, total: $('#sTotal').value, items: $('#sItems').value.trim(), battery: $('#sBattery').value.trim(), tyre: $('#sTyre').value.trim(), notes: $('#sNotes').value.trim() };
+  if (!p.date){ $('#svcErr').textContent = 'Tarikh diperlukan'; return; }
+  if (!p.type){ $('#svcErr').textContent = 'Masukkan jenis servis'; return; }
+  const btn = $('#btnSaveSvc'); btn.disabled = true;
+  const ok = await mutate('saveService', p, p.id ? 'Servis dikemaskini' : 'Servis disimpan');
+  btn.disabled = false;
+  if (ok) $('#svcSheet').close();
 }
 
 function renderMonth(){
@@ -705,6 +807,7 @@ function renderMonth(){
             <div><span>Penuh / separuh</span><b class="num">${m.full} / ${m.half}</b></div>
             <div><span>Jimat BUDI95</span><b class="num">${rm(m.saved)}</b></div>
             <div><span>Purata setiap isian</span><b class="num">${rm(m.rm/m.fills)}</b></div>
+            ${(()=>{ const sv = scopedSvc().filter(x=>mk(x.date)===m.key); return sv.length ? `<div><span>Kos servis</span><b class="num">${rm(sv.reduce((a,x)=>a+(x.total||0),0))}</b></div>` : ''; })()}
             ${own}${vehRows}
           </div>
           <table class="t"><thead><tr><th>Tarikh</th><th class="r">RM</th><th class="r">L</th><th class="r">km/L</th></tr></thead>
@@ -942,6 +1045,7 @@ function renderSettings(reason){
         <div class="field"><label for="sDiesel">Diesel</label><input class="input num" id="sDiesel" type="number" step="0.01" value="${esc(s.DIESEL_PRICE)}"></div>
       </div>
       <h3 style="margin-top:var(--s2)"><i class="bi bi-person-vcard"></i> BUDI95</h3>
+      <div class="field"><label for="sInterval">Selang servis</label><div class="input-suf"><input class="input num" id="sInterval" type="number" value="${esc(s.SERVICE_INTERVAL_KM||10000)}"><span>km</span></div></div>
       <div class="field"><label for="sQuota">Kuota sebulan setiap MyKad</label><div class="input-suf"><input class="input num" id="sQuota" type="number" value="${esc(s.MONTHLY_BUDI_LITRE)}"><span>L</span></div></div>
       <div class="field"><label for="sOwners">Nama pemilik MyKad</label><input class="input" id="sOwners" value="${esc(s.BUDI_NAMES)}"><span class="hint">Asingkan dengan koma, cth. OWN,AIN,OTHERS</span></div>
       <button class="btn btn-primary" id="btnSaveSet"><i class="bi bi-check2"></i>Simpan tetapan</button>
@@ -998,7 +1102,16 @@ document.addEventListener('click', async e => {
   if (t.dataset.goto) return go(t.dataset.goto);
   if (t.dataset.veh){ S.veh = t.dataset.veh; LS.set('veh', S.veh); return render(); }
   if (t.dataset.log) return openLog(t.dataset.log);
-  if (t.id==='btnAdd') return openLog();
+  if (t.id==='btnAdd') return (S.view==='logs' && S.rec==='service') ? openService() : openLog();
+  if (t.dataset.rec){ S.rec = t.dataset.rec; return renderLogs(); }
+  if (t.dataset.svc) return openService(t.dataset.svc);
+  if (t.dataset.gotoSvc){ S.rec = 'service'; return go('logs'); }
+  if (t.id==='btnDelSvc'){
+    const id = $('#sId').value;
+    if (await confirmBox('Padam rekod servis?', 'Rekod servis ini akan dipadam dari helaian. Tindakan ini tidak boleh dibatalkan.', 'Padam', true))
+      if (await mutate('deleteService', {id}, 'Rekod servis dipadam')) $('#svcSheet').close();
+    return;
+  }
   if (t.id==='btnSettings') return openSettings();
   if (t.id==='chipAddVeh' || t.id==='btnNewVeh') return openVeh();
   if (t.dataset.editveh) return openVeh(t.dataset.editveh);
@@ -1032,7 +1145,7 @@ document.addEventListener('click', async e => {
     return;
   }
   if (t.id==='btnSaveSet'){
-    const p = { RON95_BUDI_PRICE:$('#sBudi').value, RON95_MARKET_PRICE:$('#sMarket').value, RON97_PRICE:$('#s97').value, DIESEL_PRICE:$('#sDiesel').value, MONTHLY_BUDI_LITRE:$('#sQuota').value, BUDI_NAMES:$('#sOwners').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).join(',') };
+    const p = { RON95_BUDI_PRICE:$('#sBudi').value, RON95_MARKET_PRICE:$('#sMarket').value, RON97_PRICE:$('#s97').value, DIESEL_PRICE:$('#sDiesel').value, MONTHLY_BUDI_LITRE:$('#sQuota').value, SERVICE_INTERVAL_KM:$('#sInterval').value, BUDI_NAMES:$('#sOwners').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).join(',') };
     t.disabled = true; await mutate('saveSettings', p, 'Tetapan disimpan'); t.disabled = false; return;
   }
   if (t.id==='btnConn'){
@@ -1048,6 +1161,8 @@ document.addEventListener('click', async e => {
 });
 $('#logForm').addEventListener('submit', saveLog);
 $('#vehForm').addEventListener('submit', saveVeh);
+$('#svcForm').addEventListener('submit', saveService);
+['#sLabour','#sParts'].forEach(q=>$(q).addEventListener('input', () => { const a=$('#sLabour').value, b=$('#sParts').value; if (a!==''||b!=='') $('#sTotal').value = (num(a)+num(b)).toFixed(2); }));
 ['#fOdo','#fPaid','#fPrice','#fVeh'].forEach(s=>$(s).addEventListener('input', preview));
 $('#fVeh').addEventListener('change', () => { const v = vehById($('#fVeh').value); if (v && !$('#fId').value){ F.fuel = v.fuelType||'RON95'; const p=priceFor(F.fuel,F.cat); if(p!=null) $('#fPrice').value=p; segs(); } preview(); });
 $('#q').addEventListener('input', () => renderLogs());
