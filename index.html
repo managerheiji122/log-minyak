@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log Minyak</title>
+<meta name="description" content="Rekod isian minyak, kecekapan dan kuota BUDI95 untuk semua kenderaan.">
+<meta name="theme-color" content="#0F766E" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1211" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Log Minyak">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  /* URL Web App Apps Script (…/exec). Boleh juga diisi dalam Tetapan > Sambungan. */
+  window.DEFAULT_API_URL = '';
+</script>
+<style>
+/* ===== Theme tokens (single source for every colour/space/radius) ===== */
+:root{
+  color-scheme: light;
+  --bg:#F3F6F5; --surface:#FFFFFF; --surface-2:#EDF2F0; --border:#DFE7E4;
+  --text:#0E1B19; --text-2:#465753; --text-3:#6F807C;
+  --primary:#0F766E; --primary-ink:#FFFFFF; --primary-soft:#D5EFEA; --primary-text:#0B5D57;
+  --good:#15803D; --good-soft:#DCF3E3; --warn:#B45309; --warn-soft:#FDEBD3; --bad:#B91C1C; --bad-soft:#FBE0E0;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300; --c7:#6250d6; --c8:#e34948;
+  --shadow:0 1px 2px rgba(14,27,25,.05),0 6px 20px rgba(14,27,25,.06);
+  --r-lg:20px; --r:14px; --r-sm:10px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+  --nav-h:68px;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0B1211; --surface:#131C1A; --surface-2:#1A2523; --border:#25322F;
+    --text:#E8F1EF; --text-2:#A8B8B4; --text-3:#7F908C;
+    --primary:#2CB8A8; --primary-ink:#04201D; --primary-soft:#123B36; --primary-text:#5FD3C4;
+    --good:#4ADE80; --good-soft:#123222; --warn:#FBBF24; --warn-soft:#3A2A0C; --bad:#F87171; --bad-soft:#3B1515;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0B1211; --surface:#131C1A; --surface-2:#1A2523; --border:#25322F;
+  --text:#E8F1EF; --text-2:#A8B8B4; --text-3:#7F908C;
+  --primary:#2CB8A8; --primary-ink:#04201D; --primary-soft:#123B36; --primary-text:#5FD3C4;
+  --good:#4ADE80; --good-soft:#123222; --warn:#FBBF24; --warn-soft:#3A2A0C; --bad:#F87171; --bad-soft:#3B1515;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--s4))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--text-2)} .faint{color:var(--text-3)}
+.hidden{display:none!important}
+
+/* ===== Header ===== */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:calc(env(safe-area-inset-top) + var(--s3)) var(--s4) var(--s2)}
+.top-row{display:flex;align-items:center;gap:var(--s3);max-width:960px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:var(--s2);font-weight:800;font-size:1.15rem;letter-spacing:-.01em;margin-right:auto}
+.brand-mark{width:32px;height:32px;border-radius:10px;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font-size:1rem}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;font-size:1.1rem;color:var(--text-2)}
+.icon-btn:hover{color:var(--text);border-color:var(--text-3)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+.sync-dot.pending{background:var(--warn)} .sync-dot.off{background:var(--text-3)}
+.veh-strip{display:flex;gap:var(--s2);overflow-x:auto;max-width:960px;margin:var(--s3) auto 0;padding-bottom:var(--s1);scrollbar-width:none}
+.veh-strip::-webkit-scrollbar{display:none}
+
+/* ===== Chips & segmented ===== */
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-pill);border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-weight:600;font-size:.88rem;white-space:nowrap}
+.chip:hover{border-color:var(--text-3);color:var(--text)}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chip .sw{width:10px;height:10px;border-radius:50%}
+.seg{display:flex;background:var(--surface-2);border-radius:var(--r-sm);padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;border-radius:8px;font-weight:600;font-size:.88rem;color:var(--text-2);line-height:1.2}
+.seg button small{display:block;font-weight:500;font-size:.72rem;color:var(--text-3)}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.seg button.on small{color:var(--primary-text)}
+
+/* ===== Layout ===== */
+main{max-width:960px;margin:0 auto;padding:var(--s2) var(--s4) var(--s4)}
+.view{display:none;animation:fade .2s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:var(--s3)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:760px){.g-md-2{grid-template-columns:repeat(2,minmax(0,1fr))}.g-md-4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.sec-title{display:flex;align-items:center;justify-content:space-between;margin:var(--s6) 0 var(--s3);font-size:1rem;font-weight:700}
+.sec-title .link{font-size:.85rem;font-weight:600;color:var(--primary-text);background:none;border:0;padding:0}
+
+/* ===== Cards ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);box-shadow:var(--shadow)}
+.hero{background:linear-gradient(140deg,var(--primary),color-mix(in srgb,var(--primary) 70%,#0b2f2b));color:#fff;border:0}
+.hero .label{opacity:.85;font-weight:600;font-size:.85rem}
+.hero .big{font-size:2.3rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:var(--s1) 0}
+.hero .delta{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.16);padding:3px 10px;border-radius:var(--r-pill);font-size:.8rem;font-weight:600}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid rgba(255,255,255,.18)}
+.hero-stats b{display:block;font-size:1.1rem;font-weight:700}
+.hero-stats span{font-size:.75rem;opacity:.8}
+.stat .k{font-size:.78rem;color:var(--text-2);font-weight:600;display:flex;align-items:center;gap:6px}
+.stat .v{font-size:1.35rem;font-weight:800;letter-spacing:-.01em;margin-top:2px}
+.stat .v small{font-size:.75rem;font-weight:600;color:var(--text-3);margin-left:2px}
+.stat .sub{font-size:.75rem;color:var(--text-3);margin-top:2px}
+.ico{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-text);font-size:.9rem}
+
+/* quota */
+.quota{display:grid;gap:var(--s4)}
+.q-head{display:flex;justify-content:space-between;align-items:baseline;font-size:.88rem;margin-bottom:6px}
+.q-head b{font-weight:700}
+.bar{height:10px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:var(--r-pill);background:var(--primary);transition:width .5s ease}
+.bar>i.warn{background:var(--warn)} .bar>i.bad{background:var(--bad)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-pill);font-size:.74rem;font-weight:700}
+.b-good{background:var(--good-soft);color:var(--good)} .b-warn{background:var(--warn-soft);color:var(--warn)} .b-bad{background:var(--bad-soft);color:var(--bad)} .b-neutral{background:var(--surface-2);color:var(--text-2)}
+
+/* list */
+.list{display:flex;flex-direction:column}
+.month-head{display:flex;justify-content:space-between;align-items:baseline;padding:var(--s4) var(--s1) var(--s2);font-weight:700;position:sticky;top:calc(env(safe-area-inset-top) + 104px);background:var(--bg);z-index:5}
+.month-head span{font-size:.82rem;color:var(--text-2);font-weight:600}
+.row{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:var(--s2);text-align:left;width:100%}
+.row:hover{border-color:var(--text-3)}
+.row .date{width:46px;text-align:center;flex:none}
+.row .date b{display:block;font-size:1.2rem;font-weight:800;line-height:1}
+.row .date span{font-size:.7rem;color:var(--text-3);font-weight:600;text-transform:uppercase}
+.row .mid{flex:1;min-width:0}
+.row .mid .t{font-weight:700;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row .mid .s{font-size:.8rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .end{text-align:right;flex:none}
+.row .end b{display:block;font-weight:800}
+.vdot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+
+.search{display:flex;align-items:center;gap:var(--s2);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0 var(--s3)}
+.search input{border:0;background:transparent;flex:1;padding:12px 0;outline:none}
+.filters{display:flex;gap:var(--s2);overflow-x:auto;margin:var(--s3) 0 0;scrollbar-width:none}
+
+/* monthly table */
+.mcard{padding:0;overflow:hidden}
+.mcard summary{list-style:none;display:grid;grid-template-columns:1fr auto;gap:var(--s2);padding:var(--s4);cursor:pointer}
+.mcard summary::-webkit-details-marker{display:none}
+.mcard .mname{font-weight:800;font-size:1.02rem}
+.mcard .mrm{font-weight:800;font-size:1.1rem;text-align:right}
+.mcard .mbar{grid-column:1/-1;height:6px;border-radius:var(--r-pill);background:var(--surface-2);overflow:hidden}
+.mcard .mbar i{display:block;height:100%;background:var(--primary);border-radius:var(--r-pill)}
+.mcard .mmeta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);font-size:.8rem;color:var(--text-2)}
+.mcard .mmeta b{color:var(--text);font-weight:700}
+.mdetail{border-top:1px solid var(--border);padding:var(--s4);display:grid;gap:var(--s3);background:var(--surface-2)}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2) var(--s4)}
+@media(min-width:560px){.kv{grid-template-columns:repeat(4,1fr)}}
+.kv div span{display:block;font-size:.72rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kv div b{font-weight:700}
+table.t{width:100%;border-collapse:collapse;font-size:.82rem}
+table.t th{text-align:left;font-weight:600;color:var(--text-3);padding:6px 4px;border-bottom:1px solid var(--border)}
+table.t td{padding:7px 4px;border-bottom:1px solid var(--border)}
+table.t td.r,table.t th.r{text-align:right}
+
+/* charts */
+.chart-card h3{margin:0;font-size:.95rem;font-weight:700}
+.chart-card p{margin:2px 0 var(--s3);font-size:.78rem;color:var(--text-3)}
+.chart-box{position:relative;height:230px}
+
+/* ===== Bottom nav ===== */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+.nav-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h);align-items:center}
+.nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.7rem;font-weight:600;color:var(--text-3);padding:6px 0}
+.nav button i{font-size:1.25rem}
+.nav button.on{color:var(--primary-text)}
+.nav .fab{width:54px;height:54px;border-radius:18px;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font-size:1.6rem;margin:-22px auto 0;box-shadow:0 8px 24px color-mix(in srgb,var(--primary) 45%,transparent);border:4px solid var(--surface)}
+
+/* ===== Sheet (dialog) ===== */
+dialog.sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:560px;max-height:92dvh;border-radius:24px 24px 0 0;background:var(--surface);color:var(--text);box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+@media(min-width:760px){dialog.sheet{margin:auto;border-radius:24px}}
+dialog.sheet::backdrop{background:rgba(5,15,13,.5);backdrop-filter:blur(2px)}
+dialog.sheet[open]{animation:up .22s ease}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s5) var(--s2);position:sticky;top:0;background:var(--surface);z-index:2}
+.sheet-h h2{margin:0;font-size:1.15rem;font-weight:800}
+.sheet-b{padding:var(--s2) var(--s5) var(--s5);overflow:auto;max-height:calc(92dvh - 64px)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--s4)}
+.field>label,.flabel{font-size:.8rem;font-weight:700;color:var(--text-2)}
+.field .hint{font-size:.76rem;color:var(--text-3)}
+.input{width:100%;padding:12px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface-2);outline:none;font-size:1rem}
+.input:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 3px var(--primary-soft)}
+.input.big{font-size:1.5rem;font-weight:800;padding:14px}
+.input-pre{position:relative}
+.input-pre>span{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--text-3)}
+.input-pre>.input{padding-left:46px}
+.input-suf{position:relative}
+.input-suf>span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:600;color:var(--text-3);font-size:.85rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+.preview{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);background:var(--primary-soft);border-radius:var(--r);padding:var(--s3);margin-bottom:var(--s4);text-align:center}
+.preview span{display:block;font-size:.72rem;color:var(--primary-text);font-weight:700}
+.preview b{font-size:1.1rem;font-weight:800}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--r);padding:14px 18px;font-weight:700;font-size:1rem}
+.btn-primary{background:var(--primary);color:var(--primary-ink);width:100%}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:var(--surface-2);color:var(--text)}
+.btn-danger{background:var(--bad-soft);color:var(--bad)}
+.btn-row{display:flex;gap:var(--s2)}
+.err{color:var(--bad);font-size:.8rem;font-weight:600}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatches button{width:34px;height:34px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--border)}
+.swatches button.on{box-shadow:0 0 0 2px var(--text)}
+.set-group{background:var(--surface-2);border-radius:var(--r);padding:var(--s4);margin-bottom:var(--s4)}
+.set-group h3{margin:0 0 var(--s3);font-size:.9rem;font-weight:800}
+.vrow{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);background:var(--surface);border-radius:var(--r-sm);margin-bottom:var(--s2);width:100%;border:1px solid var(--border);text-align:left}
+
+/* toast, loading, empty */
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:12px 18px;border-radius:var(--r);font-weight:600;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s;z-index:100;max-width:calc(100% - 32px);display:flex;gap:8px;align-items:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.bad{background:var(--bad);color:#fff}
+.loading{min-height:60dvh;display:grid;place-items:center;text-align:center;color:var(--text-2)}
+.spin{width:36px;height:36px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--primary);animation:r 0.8s linear infinite;margin:0 auto var(--s3)}
+@keyframes r{to{transform:rotate(360deg)}}
+.skel{background:linear-gradient(90deg,var(--surface-2),var(--border),var(--surface-2));background-size:200% 100%;animation:sk 1.2s infinite;border-radius:var(--r-lg)}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{text-align:center;padding:var(--s8) var(--s4);color:var(--text-2)}
+.empty i{font-size:2.4rem;color:var(--text-3)}
+.banner{display:flex;gap:var(--s3);align-items:center;padding:var(--s3) var(--s4);border-radius:var(--r);background:var(--warn-soft);color:var(--warn);font-weight:600;font-size:.85rem;margin-bottom:var(--s3)}
+.banner .btn{padding:8px 12px;font-size:.82rem;margin-left:auto}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand"><span class="brand-mark"><i class="bi bi-fuel-pump-fill"></i></span>Log Minyak</div>
+    <span id="syncState" class="faint" style="font-size:.78rem;display:flex;align-items:center;gap:6px"><span class="sync-dot off"></span><span>—</span></span>
+    <button class="icon-btn" id="btnSettings" aria-label="Tetapan"><i class="bi bi-gear"></i></button>
+  </div>
+  <div class="veh-strip" id="vehStrip" role="tablist" aria-label="Pilih kenderaan"></div>
+</header>
+
+<main>
+  <div id="boot" class="loading"><div><div class="spin"></div>Memuatkan data…</div></div>
+  <div id="pendingBanner" class="banner hidden"><i class="bi bi-cloud-arrow-up"></i><span id="pendingText"></span><button class="btn btn-ghost" id="btnSyncNow">Sync</button></div>
+
+  <!-- UTAMA -->
+  <section class="view" id="v-home" aria-label="Utama"></section>
+  <!-- REKOD -->
+  <section class="view" id="v-logs" aria-label="Rekod">
+    <div class="search"><i class="bi bi-search faint"></i><input id="q" type="search" placeholder="Cari stesen, nota, tarikh…" aria-label="Cari rekod"></div>
+    <div class="filters" id="logFilters"></div>
+    <div id="logList" class="list" style="margin-top:var(--s2)"></div>
+  </section>
+  <!-- BULANAN -->
+  <section class="view" id="v-month" aria-label="Rumusan bulanan"></section>
+  <!-- GRAF -->
+  <section class="view" id="v-charts" aria-label="Graf"></section>
+</main>
+
+<nav class="nav" aria-label="Navigasi utama">
+  <div class="nav-in">
+    <button data-view="home" class="on"><i class="bi bi-house-door"></i>Utama</button>
+    <button data-view="logs"><i class="bi bi-list-ul"></i>Rekod</button>
+    <button id="btnAdd" aria-label="Tambah isian"><span class="fab"><i class="bi bi-plus-lg"></i></span></button>
+    <button data-view="month"><i class="bi bi-calendar3"></i>Bulanan</button>
+    <button data-view="charts"><i class="bi bi-graph-up"></i>Graf</button>
+  </div>
+</nav>
+
+<!-- Log sheet -->
+<dialog class="sheet" id="logSheet" aria-labelledby="logTitle">
+  <div class="sheet-h"><h2 id="logTitle">Isian baharu</h2><button class="icon-btn" data-close aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
+  <form class="sheet-b" id="logForm" novalidate>
+    <input type="hidden" id="fId">
+    <div class="field"><label for="fVeh">Kenderaan</label><select class="input" id="fVeh"></select></div>
+    <div class="two">
+      <div class="field"><label for="fDate">Tarikh</label><input class="input" type="date" id="fDate" required></div>
+      <div class="field"><label for="fOdo">Odometer</label><div class="input-suf"><input class="input num" type="number" inputmode="numeric" id="fOdo" required><span>km</span></div><span class="hint" id="odoHint"></span></div>
+    </div>
+    <div class="field"><span class="flabel">Jenis minyak</span><div class="seg" id="segFuel"></div></div>
+    <div class="field" id="fieldCat"><span class="flabel">Kategori harga</span><div class="seg" id="segCat"></div></div>
+    <div class="two">
+      <div class="field"><label for="fPaid">Jumlah bayar</label><div class="input-pre"><span>RM</span><input class="input big num" type="number" inputmode="decimal" step="0.01" id="fPaid" required></div></div>
+      <div class="field"><label for="fPrice">Harga seliter</label><div class="input-pre"><span>RM</span><input class="input big num" type="number" inputmode="decimal" step="0.01" id="fPrice" required></div></div>
+    </div>
+    <div class="field"><span class="flabel">Isian</span><div class="seg" id="segIsian">
+      <button type="button" data-v="PENUH">Penuh<small>Kira kecekapan</small></button>
+      <button type="button" data-v="SEPARUH">Separuh<small>Dikumpul ke isian penuh</small></button></div></div>
+    <div class="field" id="fieldOwner"><span class="flabel">MyKad BUDI95 digunakan</span><div class="seg" id="segOwner"></div></div>
+    <div class="preview"><div><span>Liter</span><b class="num" id="pvL">—</b></div><div><span>Jarak sejak penuh</span><b class="num" id="pvTrip">—</b></div><div><span>Anggaran km/L</span><b class="num" id="pvKmL">—</b></div></div>
+    <div class="field"><label for="fStation">Stesen <span class="faint">(pilihan)</span></label><input class="input" id="fStation" list="stationList" placeholder="cth. Petronas Bangi"><datalist id="stationList"></datalist></div>
+    <div class="field"><label for="fNotes">Nota <span class="faint">(pilihan)</span></label><input class="input" id="fNotes" placeholder="cth. balik kampung"></div>
+    <p class="err" id="logErr" role="alert"></p>
+    <div class="btn-row"><button type="button" class="btn btn-danger hidden" id="btnDelLog"><i class="bi bi-trash"></i></button><button class="btn btn-primary" id="btnSaveLog" type="submit"><i class="bi bi-check2"></i>Simpan</button></div>
+  </form>
+</dialog>
+
+<!-- Settings sheet -->
+<dialog class="sheet" id="setSheet" aria-labelledby="setTitle">
+  <div class="sheet-h"><h2 id="setTitle">Tetapan</h2><button class="icon-btn" data-close aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
+  <div class="sheet-b" id="setBody"></div>
+</dialog>
+
+<!-- Vehicle sheet -->
+<dialog class="sheet" id="vehSheet" aria-labelledby="vehTitle">
+  <div class="sheet-h"><h2 id="vehTitle">Kenderaan</h2><button class="icon-btn" data-close aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
+  <form class="sheet-b" id="vehForm" novalidate>
+    <input type="hidden" id="vId">
+    <div class="field"><label for="vName">Nama</label><input class="input" id="vName" required placeholder="cth. Myvi Isteri"></div>
+    <div class="two">
+      <div class="field"><label for="vPlate">No. plat</label><input class="input" id="vPlate" placeholder="WXX 1234"></div>
+      <div class="field"><label for="vTank">Tangki</label><div class="input-suf"><input class="input num" type="number" id="vTank" placeholder="40"><span>L</span></div></div>
+    </div>
+    <div class="field"><label for="vModel">Model</label><input class="input" id="vModel" placeholder="cth. Perodua Myvi 1.5 AV"></div>
+    <div class="field"><span class="flabel">Minyak biasa</span><div class="seg" id="segVFuel"></div></div>
+    <div class="field"><span class="flabel">Warna</span><div class="swatches" id="vColors"></div></div>
+    <div class="field"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="vActive" checked> Aktif (papar dalam pilihan)</label></div>
+    <p class="err" id="vehErr" role="alert"></p>
+    <div class="btn-row"><button type="button" class="btn btn-danger hidden" id="btnDelVeh"><i class="bi bi-trash"></i></button><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Simpan kenderaan</button></div>
+  </form>
+</dialog>
+
+<!-- Confirm -->
+<dialog class="sheet" id="confirmSheet" style="max-width:420px">
+  <div class="sheet-b" style="padding-top:var(--s5)">
+    <h2 id="cfTitle" style="margin:0 0 var(--s2);font-size:1.1rem"></h2>
+    <p id="cfText" class="muted" style="margin:0 0 var(--s5)"></p>
+    <div class="btn-row"><button class="btn btn-ghost" style="flex:1" id="cfNo">Batal</button><button class="btn btn-primary" style="flex:1" id="cfYes">Ya</button></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+window.addEventListener('error', function (e) {
+  var b = document.getElementById('boot');
+  if (b && !b.classList.contains('hidden')) b.innerHTML = '<div class="empty"><p>Ralat aplikasi: ' + String(e.message).replace(/</g, '&lt;') + ' (baris ' + e.lineno + ')</p><button class="btn btn-primary" style="width:auto" onclick="location.reload()">Muat semula</button></div>';
+});
+</script>
+<script>
+/* =========================================================
+   Log Minyak v2 — frontend (Apps Script HtmlService + PWA)
+   ========================================================= */
+const GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem('fl_'+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('fl_'+k, JSON.stringify(v)); }catch(e){} }
+};
+const MONTHS = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+const MONTHS_FULL = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const DAYS = ['Ahd','Isn','Sel','Rab','Kha','Jum','Sab'];
+const FUELS = ['RON95','RON97','DIESEL'];
+const SLOT = n => `var(--c${(n % 8) + 1})`;
+
+const S = {
+  data: LS.get('cache', null),
+  veh: LS.get('veh', 'ALL'),
+  view: 'home',
+  queue: LS.get('queue', []),
+  logFilter: { isian:'', owner:'' },
+  year: new Date().getFullYear(),
+  range: LS.get('range', 12),
+  charts: {},
+  online: true
+};
+
+/* ---------- formatting ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f2 = n => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const f1 = n => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString('ms-MY',{minimumFractionDigits:1,maximumFractionDigits:1});
+const f0 = n => (n==null||isNaN(n)) ? '—' : Math.round(n).toLocaleString('ms-MY');
+const rm = n => 'RM ' + f2(n);
+const today = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const mk = d => d.slice(0,7);
+const mLabel = k => MONTHS[+k.slice(5,7)-1] + ' ' + k.slice(2,4);
+const mFull = k => MONTHS_FULL[+k.slice(5,7)-1] + ' ' + k.slice(0,4);
+const prevMonth = k => { let y=+k.slice(0,4), m=+k.slice(5,7)-1; if(m===0){y--;m=12;} return y+'-'+String(m).padStart(2,'0'); };
+const daysBetween = (a,b) => Math.round((new Date(b) - new Date(a)) / 864e5);
+const set = () => S.data.settings;
+const num = v => { const n=parseFloat(v); return isNaN(n)?0:n; };
+const owners = () => String(set().BUDI_NAMES||'OWN').split(',').map(s=>s.trim()).filter(Boolean);
+
+/* ---------- backend ---------- */
+function apiUrl(){ return LS.get('api', '') || window.DEFAULT_API_URL || ''; }
+function call(action, payload){
+  const pin = LS.get('pin','');
+  if (GAS) return new Promise((res, rej) => google.script.run.withSuccessHandler(r => r.ok ? res(r.data) : rej(new Error(r.error))).withFailureHandler(rej).api(action, pin, payload||{}));
+  const url = apiUrl();
+  if (!url) return Promise.reject(new Error('NO_API'));
+  return fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, pin, payload: payload||{}}) })
+    .then(r => r.json()).then(r => { if(!r.ok) throw new Error(r.error); return r.data; });
+}
+function isNetErr(e){ return e && (e.name === 'TypeError' || /Failed to fetch|NetworkError|Load failed/i.test(e.message)); }
+
+function setSync(state, text){
+  const el = $('#syncState');
+  el.innerHTML = `<span class="sync-dot ${state}"></span><span>${esc(text)}</span>`;
+}
+function applyData(d){
+  S.data = d; LS.set('cache', d);
+  if (S.veh !== 'ALL' && !d.vehicles.some(v=>v.id===S.veh)) S.veh = 'ALL';
+  applyQueueToView();
+  render();
+}
+async function load(){
+  try{
+    setSync('pending','Menyegerak…');
+    const d = await call('getAll');
+    applyData(d);
+    await flushQueue();
+    setSync('', 'Terkini');
+  }catch(e){
+    if (e.message === 'NO_API' || e.message === 'PIN_REQUIRED'){ $('#boot').classList.add('hidden'); return openSettings(e.message); }
+    setSync('off', 'Luar talian');
+    if (S.data) render(); else { $('#boot').innerHTML = `<div class="empty"><i class="bi bi-wifi-off"></i><p>Tidak dapat memuatkan data.<br><span class="faint">${esc(e.message)}</span></p><button class="btn btn-primary" style="width:auto" onclick="location.reload()">Cuba lagi</button></div>`; }
+  }
+}
+
+/* ---------- offline queue ---------- */
+function applyQueueToView(){
+  if (!S.data) return;
+  S.queue.forEach(q => {
+    if (q.action === 'saveLog'){
+      const l = q.payload; const i = S.data.logs.findIndex(x=>x.id===l.id);
+      const row = Object.assign({ trip:null, kmL:null, rmKm:null, l100:null, rm100:null, ts:'' }, l, { litre: num(l.paid)/num(l.price), pending:true, odo:num(l.odo), paid:num(l.paid), price:num(l.price) });
+      if (i>-1) S.data.logs[i] = row; else S.data.logs.push(row);
+    }
+    if (q.action === 'deleteLog') S.data.logs = S.data.logs.filter(x=>x.id!==q.payload.id);
+  });
+  const n = S.queue.length;
+  $('#pendingBanner').classList.toggle('hidden', !n);
+  $('#pendingText').textContent = n + ' perubahan belum disegerak';
+}
+async function flushQueue(){
+  if (!S.queue.length) return;
+  setSync('pending','Menyegerak…');
+  while (S.queue.length){
+    const q = S.queue[0];
+    try{ const d = await call(q.action, q.payload); S.queue.shift(); LS.set('queue', S.queue); S.data = d; }
+    catch(e){ if (isNetErr(e)) { setSync('off','Luar talian'); break; } S.queue.shift(); LS.set('queue', S.queue); toast('Gagal sync: ' + e.message, true); }
+  }
+  LS.set('cache', S.data); applyQueueToView(); render();
+  if (!S.queue.length) { setSync('', 'Terkini'); toast('Semua rekod telah disegerak'); }
+}
+async function mutate(action, payload, okMsg){
+  try{
+    const d = await call(action, payload);
+    applyData(d); toast(okMsg); return true;
+  }catch(e){
+    if (!GAS && isNetErr(e) && (action==='saveLog' || action==='deleteLog')){
+      S.queue.push({action, payload}); LS.set('queue', S.queue);
+      applyQueueToView(); render(); setSync('off','Luar talian');
+      toast('Disimpan dalam peranti — akan sync bila online'); return true;
+    }
+    toast(e.message === 'PIN_REQUIRED' ? 'PIN salah' : e.message, true); return false;
+  }
+}
+window.addEventListener('online', () => flushQueue());
+window.addEventListener('offline', () => setSync('off','Luar talian'));
+
+/* ---------- analytics ---------- */
+function vehById(id){ return S.data.vehicles.find(v=>v.id===id); }
+function vehIndex(id){ return Math.max(0, S.data.vehicles.findIndex(v=>v.id===id)); }
+function vehColor(id){ const v = vehById(id); return (v && v.color && v.color.startsWith('var')) ? v.color : SLOT(vehIndex(id)); }
+function scoped(){ const L = S.data.logs; return S.veh==='ALL' ? L : L.filter(l=>l.vehicleId===S.veh); }
+function sortLogs(L){ return L.slice().sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:a.odo-b.odo); }
+function isBudi(l){ return l.fuelType==='RON95' && l.owner && Math.abs(l.price - num(set().RON95_BUDI_PRICE)) < 0.006; }
+function saving(l){ return isBudi(l) ? l.litre * Math.max(0, num(set().RON95_MARKET_PRICE) - l.price) : 0; }
+
+/** distance travelled per log = odometer delta from the previous log of the same vehicle */
+function withDistance(L){
+  const by = {}; L.forEach(l => (by[l.vehicleId] = by[l.vehicleId] || []).push(l));
+  const out = new Map();
+  Object.values(by).forEach(arr => {
+    arr.sort((a,b)=> a.odo-b.odo || (a.date<b.date?-1:1));
+    for (let i=1;i<arr.length;i++){ const d = arr[i].odo - arr[i-1].odo; if (d>0 && d<2500 && arr[i].date >= arr[i-1].date) out.set(arr[i].id, d); }
+  });
+  return out;
+}
+function monthStats(L){
+  const dist = withDistance(S.data.logs);
+  const M = {};
+  L.forEach(l => {
+    const k = mk(l.date);
+    const m = M[k] = M[k] || { key:k, rm:0, L:0, fills:0, full:0, half:0, km:0, trip:0, usedL:0, usedRM:0, owners:{}, saved:0, byVeh:{}, logs:[] };
+    m.rm += l.paid; m.L += l.litre; m.fills++; l.isian==='SEPARUH' ? m.half++ : m.full++;
+    m.km += dist.get(l.id) || 0;
+    if (l.kmL && l.trip){ m.trip += l.trip; m.usedL += l.trip / l.kmL; m.usedRM += l.trip * (l.rmKm||0); }
+    if (isBudi(l)) m.owners[l.owner] = (m.owners[l.owner]||0) + l.litre;
+    m.saved += saving(l);
+    m.byVeh[l.vehicleId] = (m.byVeh[l.vehicleId]||0) + l.paid;
+    m.logs.push(l);
+  });
+  Object.values(M).forEach(m => { m.kmL = m.usedL ? m.trip/m.usedL : null; m.rm100 = m.trip ? m.usedRM/m.trip*100 : null; m.senKm = m.km ? m.rm/m.km*100 : null; });
+  return M;
+}
+function lifetime(L){
+  const full = L.filter(l=>l.kmL && l.trip);
+  const trip = full.reduce((s,l)=>s+l.trip,0), used = full.reduce((s,l)=>s+l.trip/l.kmL,0), usedRM = full.reduce((s,l)=>s+l.trip*(l.rmKm||0),0);
+  return { rm:L.reduce((s,l)=>s+l.paid,0), L:L.reduce((s,l)=>s+l.litre,0), n:L.length, kmL: used? trip/used : null, rm100: trip? usedRM/trip*100 : null,
+    saved:L.reduce((s,l)=>s+saving(l),0), best: full.length ? full.reduce((a,b)=>b.kmL>a.kmL?b:a) : null, worst: full.length ? full.reduce((a,b)=>b.kmL<a.kmL?b:a) : null };
+}
+function kmlBadge(v, avg, isian){
+  if (v==null) return '<span class="badge b-neutral">' + (isian==='SEPARUH' ? 'separuh' : 'penuh') + '</span>';
+  const r = avg ? v/avg : 1;
+  const cls = r >= 1.05 ? 'b-good' : r <= 0.88 ? 'b-bad' : 'b-neutral';
+  return `<span class="badge ${cls} num">${f1(v)} km/L</span>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  if (!S.data) return;
+  $('#boot').classList.add('hidden');
+  renderVehStrip();
+  ({home:renderHome, logs:renderLogs, month:renderMonth, charts:renderCharts})[S.view]();
+}
+function renderVehStrip(){
+  const vs = S.data.vehicles.filter(v=>v.active);
+  const chips = [`<button class="chip ${S.veh==='ALL'?'on':''}" data-veh="ALL" role="tab" aria-selected="${S.veh==='ALL'}"><i class="bi bi-grid"></i>Semua</button>`]
+    .concat(vs.map(v => `<button class="chip ${S.veh===v.id?'on':''}" data-veh="${esc(v.id)}" role="tab" aria-selected="${S.veh===v.id}"><span class="sw" style="background:${vehColor(v.id)}"></span>${esc(v.name)}</button>`));
+  chips.push(`<button class="chip" id="chipAddVeh" aria-label="Tambah kenderaan"><i class="bi bi-plus"></i>Kenderaan</button>`);
+  $('#vehStrip').innerHTML = chips.join('');
+  $('#vehStrip').classList.toggle('hidden', S.data.vehicles.length < 1);
+}
+
+function renderHome(){
+  const L = scoped();
+  const el = $('#v-home');
+  if (!L.length){ el.innerHTML = emptyState(); return; }
+  const M = monthStats(L);
+  const cur = mk(today()), prev = prevMonth(cur);
+  const m = M[cur] || { rm:0, L:0, km:0, kmL:null, fills:0, saved:0 }, p = M[prev];
+  const delta = p && p.rm ? (m.rm - p.rm)/p.rm*100 : null;
+  const life = lifetime(L);
+  const sorted = sortLogs(L), last = sorted[sorted.length-1];
+  const avgKmL = life.kmL;
+
+  // BUDI quota is per person across all vehicles
+  const allM = monthStats(S.data.logs)[cur] || { owners:{} };
+  const quota = num(set().MONTHLY_BUDI_LITRE) || 200;
+  const qHtml = owners().map((o,i) => {
+    const used = allM.owners[o]||0, pct = Math.min(100, used/quota*100), left = Math.max(0, quota-used);
+    const cls = pct>=95?'bad':pct>=80?'warn':'';
+    return `<div><div class="q-head"><span><span class="vdot" style="background:${SLOT(i)};margin-right:6px"></span><b>${esc(o)}</b></span><span class="num"><b>${f1(used)}</b> / ${f0(quota)} L</span></div>
+      <div class="bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="Kuota ${esc(o)}"><i class="${cls}" style="width:${pct}%"></i></div>
+      <div class="faint" style="font-size:.76rem;margin-top:4px">Baki ${f1(left)} L · ≈ ${rm(left*num(set().RON95_BUDI_PRICE))}</div></div>`;
+  }).join('');
+
+  // cadence (single vehicle)
+  let cad = '';
+  const one = S.veh !== 'ALL' ? sorted : null;
+  if (one && one.length > 3){
+    const recent = one.slice(-11);
+    const gaps = []; for (let i=1;i<recent.length;i++) gaps.push(daysBetween(recent[i-1].date, recent[i].date));
+    const avgGap = gaps.reduce((a,b)=>a+b,0)/gaps.length;
+    const kmGap = (recent[recent.length-1].odo - recent[0].odo)/(recent.length-1);
+    const next = new Date(last.date); next.setDate(next.getDate()+Math.round(avgGap));
+    const nd = next.getDate()+' '+MONTHS[next.getMonth()];
+    cad = `<div class="card stat"><div class="k"><span class="ico"><i class="bi bi-calendar-check"></i></span>Anggaran isian seterusnya</div><div class="v">${nd}</div><div class="sub">Setiap ≈ ${f1(avgGap)} hari · ${f0(kmGap)} km</div></div>`;
+  } else {
+    const daysAgo = daysBetween(last.date, today());
+    cad = `<div class="card stat"><div class="k"><span class="ico"><i class="bi bi-clock-history"></i></span>Isian terakhir</div><div class="v">${daysAgo===0?'Hari ini':daysAgo+' hari lalu'}</div><div class="sub">${esc(vehById(last.vehicleId)?.name||'')} · ${rm(last.paid)}</div></div>`;
+  }
+
+  const vehCards = S.veh==='ALL' && S.data.vehicles.filter(v=>v.active).length > 1 ? `
+    <div class="sec-title">Kenderaan</div>
+    <div class="grid g-md-2">${S.data.vehicles.filter(v=>v.active).map(v => {
+      const VL = S.data.logs.filter(l=>l.vehicleId===v.id); const vm = monthStats(VL)[cur]; const lt = lifetime(VL);
+      const lo = sortLogs(VL).pop();
+      return `<button class="vrow" data-veh="${esc(v.id)}"><span class="vdot" style="background:${vehColor(v.id)};width:12px;height:12px"></span>
+        <span style="flex:1;min-width:0"><b>${esc(v.name)}</b><br><span class="faint" style="font-size:.78rem">${esc(v.plate||'')} ${lo?'· '+f0(lo.odo)+' km':''}</span></span>
+        <span style="text-align:right"><b class="num">${rm(vm?vm.rm:0)}</b><br><span class="faint num" style="font-size:.78rem">${lt.kmL?f1(lt.kmL)+' km/L':'—'}</span></span></button>`;
+    }).join('')}</div>` : '';
+
+  el.innerHTML = `
+    <div class="card hero">
+      <div class="label">Belanja ${mFull(cur)}</div>
+      <div class="big num">${rm(m.rm)}</div>
+      ${!m.fills ? '<span class="delta">Belum ada isian bulan ini</span>' : delta==null ? '<span class="delta">Tiada data bulan lepas</span>' : `<span class="delta"><i class="bi bi-arrow-${delta>=0?'up':'down'}-right"></i>${f0(Math.abs(delta))}% berbanding ${MONTHS[+prev.slice(5)-1]}</span>`}
+      <div class="hero-stats">
+        <div><b class="num">${f1(m.L)} L</b><span>Liter · ${m.fills} isian</span></div>
+        <div><b class="num">${f0(m.km)} km</b><span>Jarak</span></div>
+        <div><b class="num">${m.kmL?f1(m.kmL):'—'}</b><span>km/L</span></div>
+      </div>
+    </div>
+
+    <div class="sec-title">Kuota BUDI95 bulan ini <span class="faint" style="font-size:.78rem;font-weight:600">semua kenderaan</span></div>
+    <div class="card quota">${qHtml}</div>
+
+    <div class="sec-title">Prestasi</div>
+    <div class="grid g2 g-md-4">
+      <div class="card stat"><div class="k"><span class="ico"><i class="bi bi-speedometer2"></i></span>Purata km/L</div><div class="v num">${f1(avgKmL)}</div><div class="sub">${life.best?'Terbaik '+f1(life.best.kmL):''}</div></div>
+      <div class="card stat"><div class="k"><span class="ico"><i class="bi bi-cash-coin"></i></span>Kos /100 km</div><div class="v num">${rm(life.rm100)}</div><div class="sub num">${life.rm100?f1(life.rm100)+' sen sekm':''}</div></div>
+      <div class="card stat"><div class="k"><span class="ico"><i class="bi bi-piggy-bank"></i></span>Jimat BUDI95</div><div class="v num">${rm(m.saved)}</div><div class="sub num">Keseluruhan ${rm(life.saved)}</div></div>
+      ${cad}
+    </div>
+
+    <div class="sec-title">Trend km/L <button class="link" data-goto="charts">Lihat graf <i class="bi bi-chevron-right"></i></button></div>
+    <div class="card chart-card"><div class="chart-box" style="height:180px"><canvas id="chHomeTrend" aria-label="Trend kecekapan km/L 15 isian penuh terakhir" role="img"></canvas></div></div>
+
+    ${vehCards}
+
+    <div class="sec-title">Isian terkini <button class="link" data-goto="logs">Semua <i class="bi bi-chevron-right"></i></button></div>
+    <div class="list">${sorted.slice(-4).reverse().map(l=>logRow(l, avgKmL)).join('')}</div>
+
+    <div class="sec-title">Keseluruhan</div>
+    <div class="card"><div class="kv">
+      <div><span>Jumlah belanja</span><b class="num">${rm(life.rm)}</b></div>
+      <div><span>Jumlah liter</span><b class="num">${f0(life.L)} L</b></div>
+      <div><span>Odometer</span><b class="num">${f0(last.odo)} km</b></div>
+      <div><span>Rekod</span><b class="num">${life.n}</b></div>
+    </div></div>`;
+
+  const pts = sorted.filter(l=>l.kmL).slice(-15);
+  mkChart('chHomeTrend', { type:'line', data:{ labels: pts.map(l=>l.date.slice(8)+' '+MONTHS[+l.date.slice(5,7)-1]),
+    datasets:[{ label:'km/L', data: pts.map(l=>l.kmL), borderColor:cssv('--primary'), backgroundColor:cssv('--primary-soft'), fill:true, tension:.3, cubicInterpolationMode:'monotone', borderWidth:2, pointRadius:3, pointHoverRadius:6 }] },
+    options: baseOpts({ legend:false, y:{ title:'km/L' } }) });
+}
+
+function emptyState(){
+  return `<div class="empty"><i class="bi bi-fuel-pump"></i><h3>Belum ada rekod</h3><p>Tekan butang + untuk merekod isian minyak pertama${S.veh!=='ALL'?' kenderaan ini':''}.</p><button class="btn btn-primary" style="width:auto" onclick="openLog()"><i class="bi bi-plus-lg"></i>Tambah isian</button></div>`;
+}
+function logRow(l, avg){
+  const d = new Date(l.date), v = vehById(l.vehicleId);
+  const meta = [f0(l.odo)+' km', f2(l.litre)+' L', l.station].filter(Boolean).join(' · ');
+  return `<button class="row" data-log="${esc(l.id)}">
+    <div class="date"><b>${d.getDate()}</b><span>${DAYS[d.getDay()]}</span></div>
+    <div class="mid"><div class="t">${S.veh==='ALL' && v?`<span class="vdot" style="background:${vehColor(v.id)}"></span>`:''}${kmlBadge(l.kmL, avg, l.isian)}${l.trip?`<span class="faint num" style="font-size:.78rem;font-weight:600">${f0(l.trip)} km</span>`:''}${l.pending?'<span class="badge b-warn"><i class="bi bi-cloud-slash"></i>belum sync</span>':''}</div>
+      <div class="s">${esc(meta)}${l.owner && isBudi(l)?' · BUDI '+esc(l.owner):''}${l.notes?' · '+esc(l.notes):''}</div></div>
+    <div class="end"><b class="num">${rm(l.paid)}</b><span class="faint num" style="font-size:.75rem">RM ${f2(l.price)}/L</span></div></button>`;
+}
+
+function renderLogs(){
+  const all = scoped();
+  const q = $('#q').value.trim().toLowerCase();
+  const f = S.logFilter;
+  $('#logFilters').innerHTML = [['','Semua'],['PENUH','Penuh'],['SEPARUH','Separuh']].map(([v,t]) => `<button class="chip ${f.isian===v?'on':''}" data-fisian="${v}">${t}</button>`).join('')
+    + owners().map(o => `<button class="chip ${f.owner===o?'on':''}" data-fowner="${esc(o)}">BUDI ${esc(o)}</button>`).join('');
+  let L = all.filter(l => (!f.isian || l.isian===f.isian) && (!f.owner || (isBudi(l) && l.owner===f.owner)));
+  if (q) L = L.filter(l => [l.date, l.station, l.notes, l.owner, vehById(l.vehicleId)?.name, String(l.odo), mFull(mk(l.date))].join(' ').toLowerCase().includes(q));
+  if (!all.length){ $('#logList').innerHTML = emptyState(); return; }
+  if (!L.length){ $('#logList').innerHTML = `<div class="empty"><i class="bi bi-search"></i><p>Tiada rekod sepadan.</p></div>`; return; }
+  const avg = lifetime(all).kmL;
+  const groups = {};
+  sortLogs(L).reverse().forEach(l => (groups[mk(l.date)] = groups[mk(l.date)] || []).push(l));
+  $('#logList').innerHTML = Object.keys(groups).map(k => {
+    const g = groups[k], tot = g.reduce((s,l)=>s+l.paid,0), lit = g.reduce((s,l)=>s+l.litre,0);
+    return `<div class="month-head">${mFull(k)}<span class="num">${rm(tot)} · ${f1(lit)} L</span></div>` + g.map(l=>logRow(l, avg)).join('');
+  }).join('');
+}
+
+function renderMonth(){
+  const L = scoped(), el = $('#v-month');
+  if (!L.length){ el.innerHTML = emptyState(); return; }
+  const M = monthStats(L);
+  const years = [...new Set(L.map(l=>+l.date.slice(0,4)))].sort((a,b)=>b-a);
+  if (!years.includes(S.year)) S.year = years[0];
+  const keys = Object.keys(M).filter(k=>+k.slice(0,4)===S.year).sort().reverse();
+  const ms = keys.map(k=>M[k]);
+  const maxRm = Math.max(...ms.map(m=>m.rm), 1);
+  const tot = ms.reduce((a,m)=>({rm:a.rm+m.rm, L:a.L+m.L, km:a.km+m.km, fills:a.fills+m.fills, saved:a.saved+m.saved, trip:a.trip+m.trip, usedL:a.usedL+m.usedL}), {rm:0,L:0,km:0,fills:0,saved:0,trip:0,usedL:0});
+  const avgM = ms.length ? tot.rm/ms.length : 0;
+  const quota = num(set().MONTHLY_BUDI_LITRE)||200;
+  const multi = S.veh==='ALL' && S.data.vehicles.length > 1;
+
+  el.innerHTML = `
+    <div class="filters" style="margin:0 0 var(--s3)">${years.map(y=>`<button class="chip ${y===S.year?'on':''}" data-year="${y}">${y}</button>`).join('')}
+      <button class="chip" id="btnCsv" style="margin-left:auto"><i class="bi bi-download"></i>CSV</button></div>
+    <div class="card hero">
+      <div class="label">Jumlah ${S.year}</div>
+      <div class="big num">${rm(tot.rm)}</div>
+      <span class="delta">Purata ${rm(avgM)} sebulan</span>
+      <div class="hero-stats">
+        <div><b class="num">${f0(tot.L)} L</b><span>${tot.fills} isian</span></div>
+        <div><b class="num">${f0(tot.km)} km</b><span>Jarak</span></div>
+        <div><b class="num">${tot.usedL?f1(tot.trip/tot.usedL):'—'}</b><span>km/L · jimat ${rm(tot.saved)}</span></div>
+      </div>
+    </div>
+    <div class="sec-title">Setiap bulan</div>
+    <div class="grid">${ms.map((m,i) => {
+      const prev = M[prevMonth(m.key)];
+      const d = prev && prev.rm ? (m.rm-prev.rm)/prev.rm*100 : null;
+      const own = owners().filter(o=>m.owners[o]).map((o,j)=>`<div><span>BUDI ${esc(o)}</span><b class="num">${f1(m.owners[o])} L <span class="faint">/ ${f0(quota)}</span></b></div>`).join('');
+      const vehRows = multi ? Object.keys(m.byVeh).map(id=>`<div><span>${esc(vehById(id)?.name||id)}</span><b class="num">${rm(m.byVeh[id])}</b></div>`).join('') : '';
+      return `<details class="card mcard" ${i===0?'open':''}>
+        <summary>
+          <div><div class="mname">${mFull(m.key)}</div>${d==null?'':`<span class="badge ${d>10?'b-warn':d<-10?'b-good':'b-neutral'}"><i class="bi bi-arrow-${d>=0?'up':'down'}"></i>${f0(Math.abs(d))}%</span>`}</div>
+          <div class="mrm num">${rm(m.rm)}</div>
+          <div class="mbar"><i style="width:${m.rm/maxRm*100}%"></i></div>
+          <div class="mmeta num"><span><b>${f1(m.L)}</b> L</span><span><b>${f0(m.km)}</b> km</span><span><b>${m.kmL?f1(m.kmL):'—'}</b> km/L</span><span><b>${m.fills}</b> isian</span></div>
+        </summary>
+        <div class="mdetail">
+          <div class="kv">
+            <div><span>Kos /100 km</span><b class="num">${m.rm100?rm(m.rm100):'—'}</b></div>
+            <div><span>Sen sekm</span><b class="num">${m.senKm?f1(m.senKm):'—'}</b></div>
+            <div><span>Harga purata</span><b class="num">RM ${f2(m.rm/m.L)}/L</b></div>
+            <div><span>Penuh / separuh</span><b class="num">${m.full} / ${m.half}</b></div>
+            <div><span>Jimat BUDI95</span><b class="num">${rm(m.saved)}</b></div>
+            <div><span>Purata setiap isian</span><b class="num">${rm(m.rm/m.fills)}</b></div>
+            ${own}${vehRows}
+          </div>
+          <table class="t"><thead><tr><th>Tarikh</th><th class="r">RM</th><th class="r">L</th><th class="r">km/L</th></tr></thead>
+          <tbody>${sortLogs(m.logs).map(l=>`<tr data-log="${esc(l.id)}" style="cursor:pointer"><td>${+l.date.slice(8)} ${MONTHS[+l.date.slice(5,7)-1]}${multi?' · '+esc(vehById(l.vehicleId)?.name||''):''}</td><td class="r num">${f2(l.paid)}</td><td class="r num">${f2(l.litre)}</td><td class="r num">${l.kmL?f1(l.kmL):'<span class="faint">—</span>'}</td></tr>`).join('')}</tbody></table>
+        </div></details>`;
+    }).join('')}</div>`;
+}
+
+/* ---------- charts ---------- */
+function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function resolveColor(c){ const m = /var\((--[\w-]+)\)/.exec(c); return m ? cssv(m[1]) : c; }
+function mkChart(id, cfg){
+  if (typeof Chart === 'undefined') return;
+  const el = document.getElementById(id); if (!el) return;
+  if (S.charts[id]) S.charts[id].destroy();
+  S.charts[id] = new Chart(el, cfg);
+}
+function baseOpts(o={}){
+  const grid = cssv('--border'), tick = cssv('--text-2');
+  return {
+    responsive:true, maintainAspectRatio:false, animation:{duration:400},
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:o.legend!==false, position:'bottom', labels:{ color:tick, boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:'rectRounded', padding:14, font:{family:cssv('--font')||undefined, size:12} } },
+      tooltip:{ backgroundColor:cssv('--text'), titleColor:cssv('--bg'), bodyColor:cssv('--bg'), padding:10, cornerRadius:10, boxPadding:4,
+        callbacks: o.tip ? { label: o.tip } : {} }
+    },
+    scales:{
+      x:{ stacked:!!o.stacked, grid:{display:false}, border:{color:grid}, ticks:{ color:tick, maxRotation:0, autoSkipPadding:12, font:{size:11} } },
+      y:{ stacked:!!o.stacked, beginAtZero: o.zero!==false, grid:{ color:grid }, border:{display:false}, ticks:{ color:tick, font:{size:11}, callback: o.yfmt || (v=>v) },
+          title:{ display:!!(o.y&&o.y.title), text:o.y&&o.y.title, color:tick, font:{size:11} } }
+    }
+  };
+}
+function bar(c){ return { backgroundColor:c, borderRadius:4, borderSkipped:'start', maxBarThickness:28, borderColor:cssv('--surface'), borderWidth:{top:0,right:1,left:1,bottom:0} }; }
+
+function renderCharts(){
+  const L = scoped(), el = $('#v-charts');
+  if (!L.length){ el.innerHTML = emptyState(); return; }
+  const M = monthStats(L);
+  let keys = Object.keys(M).sort();
+  if (S.range) keys = keys.slice(-S.range);
+  const labels = keys.map(mLabel);
+  const vehs = S.veh==='ALL' ? S.data.vehicles.filter(v => L.some(l=>l.vehicleId===v.id)) : [vehById(S.veh)].filter(Boolean);
+  const multi = vehs.length > 1;
+  const from = keys[0] || '0000';
+
+  el.innerHTML = `
+    <div class="filters" style="margin:0 0 var(--s3)">${[[6,'6 bulan'],[12,'12 bulan'],[0,'Semua']].map(([v,t])=>`<button class="chip ${S.range===v?'on':''}" data-range="${v}">${t}</button>`).join('')}</div>
+    <div class="grid g-md-2">
+      ${card('chSpend','Belanja bulanan', multi?'RM, ikut kenderaan':'RM sebulan')}
+      ${card('chKmL','Kecekapan setiap isian penuh', multi?'km/L ikut kenderaan':'km/L, garis putus = purata bergerak 5 isian')}
+      ${card('chDist','Jarak bulanan','km dilalui (beza odometer)')}
+      ${card('chCost','Kos setiap 100 km','RM /100 km sebulan')}
+      ${card('chBudi','Penggunaan BUDI95 ikut pemilik','Liter sebulan · garis = had kuota')}
+      ${card('chPrice','Harga seliter','RM/L setiap isian')}
+    </div>`;
+
+  // 1 spend
+  const spendSets = multi ? vehs.map(v => Object.assign({ label:v.name, data: keys.map(k=>+(M[k].byVeh[v.id]||0).toFixed(2)) }, bar(resolveColor(vehColor(v.id)))))
+    : [Object.assign({ label:'Belanja', data: keys.map(k=>+M[k].rm.toFixed(2)) }, bar(cssv('--primary')))];
+  mkChart('chSpend', { type:'bar', data:{ labels, datasets:spendSets }, options: baseOpts({ stacked:multi, legend:multi, yfmt:v=>'RM'+v, tip:c=>` ${c.dataset.label}: RM ${f2(c.raw)}` }) });
+
+  // 2 km/L per fill
+  const fulls = sortLogs(L.filter(l=>l.kmL && l.date >= from));
+  if (multi){
+    const dates = [...new Set(fulls.map(l=>l.date))];
+    mkChart('chKmL', { type:'line', data:{ labels: dates.map(d=>+d.slice(8)+' '+MONTHS[+d.slice(5,7)-1]),
+      datasets: vehs.map(v => { const c = resolveColor(vehColor(v.id)); const by = {}; fulls.filter(l=>l.vehicleId===v.id).forEach(l=>by[l.date]=l.kmL);
+        return { label:v.name, data: dates.map(d=>by[d] ?? null), spanGaps:true, borderColor:c, backgroundColor:c, borderWidth:2, pointRadius:3, pointHoverRadius:6, tension:.3, cubicInterpolationMode:'monotone' }; }) },
+      options: baseOpts({ zero:false, tip:c=>` ${c.dataset.label}: ${f1(c.raw)} km/L` }) });
+  } else {
+    const ma = fulls.map((l,i)=>{ const w = fulls.slice(Math.max(0,i-4), i+1); return +(w.reduce((s,x)=>s+x.kmL,0)/w.length).toFixed(2); });
+    mkChart('chKmL', { type:'line', data:{ labels: fulls.map(l=>+l.date.slice(8)+' '+MONTHS[+l.date.slice(5,7)-1]),
+      datasets:[ { label:'km/L', data: fulls.map(l=>l.kmL), borderColor:cssv('--primary'), backgroundColor:cssv('--primary'), borderWidth:2, pointRadius:3, pointHoverRadius:6, tension:.3, cubicInterpolationMode:'monotone' },
+                 { label:'Purata bergerak', data: ma, borderColor:cssv('--text-3'), borderDash:[5,4], borderWidth:2, pointRadius:0, tension:.3, cubicInterpolationMode:'monotone' } ] },
+      options: baseOpts({ zero:false, tip:c=>` ${c.dataset.label}: ${f1(c.raw)} km/L` }) });
+  }
+
+  // 3 distance
+  mkChart('chDist', { type:'bar', data:{ labels, datasets:[Object.assign({ label:'Jarak', data: keys.map(k=>Math.round(M[k].km)) }, bar(cssv('--c1')))] },
+    options: baseOpts({ legend:false, tip:c=>` ${f0(c.raw)} km` }) });
+
+  // 4 cost per 100km
+  mkChart('chCost', { type:'line', data:{ labels, datasets:[{ label:'RM/100km', data: keys.map(k=>M[k].rm100?+M[k].rm100.toFixed(2):null), spanGaps:true, borderColor:cssv('--c2'), backgroundColor:cssv('--c2'), borderWidth:2, pointRadius:3, pointHoverRadius:6, tension:.3, cubicInterpolationMode:'monotone' }] },
+    options: baseOpts({ legend:false, zero:false, yfmt:v=>'RM'+v, tip:c=>` RM ${f2(c.raw)} /100 km` }) });
+
+  // 5 BUDI by owner (all vehicles, quota is per person)
+  const allM = monthStats(S.data.logs);
+  const quota = num(set().MONTHLY_BUDI_LITRE)||200;
+  const budiKeys = keys.filter(k => k >= '2025-09');
+  const os = owners();
+  mkChart('chBudi', { type:'bar', data:{ labels: budiKeys.map(mLabel), datasets: os.map((o,i)=>Object.assign({ label:o, data: budiKeys.map(k=>+((allM[k]&&allM[k].owners[o])||0).toFixed(1)) }, bar(resolveColor(SLOT(i)))))
+      .concat([{ type:'line', label:'Had kuota', data: budiKeys.map(()=>quota), borderColor:cssv('--bad'), borderDash:[6,4], borderWidth:2, pointRadius:0 }]) },
+    options: baseOpts({ tip:c=>` ${c.dataset.label}: ${f1(c.raw)} L` }) });
+
+  // 6 price
+  const pl = sortLogs(L.filter(l=>l.date >= from));
+  mkChart('chPrice', { type:'line', data:{ labels: pl.map(l=>+l.date.slice(8)+' '+MONTHS[+l.date.slice(5,7)-1]),
+    datasets:[{ label:'RM/L', data: pl.map(l=>l.price), stepped:true, borderColor:cssv('--c7'), backgroundColor:cssv('--c7'), borderWidth:2, pointRadius:2, pointHoverRadius:6 }] },
+    options: baseOpts({ legend:false, zero:false, yfmt:v=>'RM'+Number(v).toFixed(2), tip:c=>` RM ${f2(c.raw)}/L` }) });
+}
+function card(id, title, sub){ return `<div class="card chart-card"><h3>${title}</h3><p>${sub}</p><div class="chart-box"><canvas id="${id}" role="img" aria-label="${esc(title)}"></canvas></div></div>`; }
+
+/* ---------- log form ---------- */
+const F = { fuel:'RON95', cat:'BUDI', isian:'PENUH', owner:'' };
+function priceFor(fuel, cat){ const s=set(); if (fuel==='RON97') return num(s.RON97_PRICE); if (fuel==='DIESEL') return num(s.DIESEL_PRICE); return cat==='BUDI' ? num(s.RON95_BUDI_PRICE) : cat==='MARKET' ? num(s.RON95_MARKET_PRICE) : null; }
+function segs(){
+  const s = set();
+  $('#segFuel').innerHTML = FUELS.map(f=>`<button type="button" data-v="${f}" class="${F.fuel===f?'on':''}">${f==='DIESEL'?'Diesel':f}</button>`).join('');
+  $('#segCat').innerHTML = [['BUDI','BUDI95','RM '+f2(s.RON95_BUDI_PRICE)],['MARKET','Pasaran','RM '+f2(s.RON95_MARKET_PRICE)],['OTHER','Lain','harga sendiri']].map(([v,t,sub])=>`<button type="button" data-v="${v}" class="${F.cat===v?'on':''}">${t}<small>${sub}</small></button>`).join('');
+  $('#segOwner').innerHTML = owners().map(o=>`<button type="button" data-v="${esc(o)}" class="${F.owner===o?'on':''}">${esc(o)}</button>`).join('');
+  [...$('#segIsian').children].forEach(b=>b.classList.toggle('on', b.dataset.v===F.isian));
+  $('#fieldCat').classList.toggle('hidden', F.fuel!=='RON95');
+  $('#fieldOwner').classList.toggle('hidden', !(F.fuel==='RON95' && F.cat==='BUDI'));
+}
+function openLog(id){
+  if (!S.data) return;
+  const vs = S.data.vehicles.filter(v=>v.active || (id && S.data.logs.find(l=>l.id===id)?.vehicleId===v.id));
+  if (!vs.length){ openVeh(); return toast('Tambah kenderaan dahulu'); }
+  $('#fVeh').innerHTML = vs.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}${v.plate?' — '+esc(v.plate):''}</option>`).join('');
+  $('#stationList').innerHTML = [...new Set(S.data.logs.map(l=>l.station).filter(Boolean))].map(s=>`<option value="${esc(s)}">`).join('');
+  $('#logErr').textContent = '';
+  const l = id && S.data.logs.find(x=>x.id===id);
+  const s = set();
+  if (l){
+    $('#logTitle').textContent = 'Kemaskini isian';
+    $('#fId').value = l.id; $('#fVeh').value = l.vehicleId; $('#fDate').value = l.date; $('#fOdo').value = l.odo;
+    $('#fPaid').value = l.paid; $('#fPrice').value = l.price; $('#fStation').value = l.station||''; $('#fNotes').value = l.notes||'';
+    F.fuel = l.fuelType || 'RON95'; F.isian = l.isian; F.owner = l.owner || owners()[0];
+    F.cat = Math.abs(l.price-num(s.RON95_BUDI_PRICE))<0.006 ? 'BUDI' : Math.abs(l.price-num(s.RON95_MARKET_PRICE))<0.006 ? 'MARKET' : 'OTHER';
+    $('#btnDelLog').classList.remove('hidden');
+  } else {
+    $('#logTitle').textContent = 'Isian baharu';
+    $('#logForm').reset(); $('#fId').value = '';
+    $('#fVeh').value = S.veh!=='ALL' && vs.some(v=>v.id===S.veh) ? S.veh : vs[0].id;
+    $('#fDate').value = today();
+    const v = vehById($('#fVeh').value);
+    F.fuel = (v && v.fuelType) || 'RON95'; F.cat = 'BUDI'; F.isian = 'PENUH';
+    const lastOwn = sortLogs(S.data.logs.filter(x=>x.owner && x.vehicleId===$('#fVeh').value)).pop();
+    F.owner = lastOwn ? lastOwn.owner : owners()[0];
+    $('#fPrice').value = priceFor(F.fuel, F.cat) ?? '';
+    $('#btnDelLog').classList.add('hidden');
+  }
+  segs(); preview();
+  $('#logSheet').showModal();
+  if (!l) setTimeout(()=>$('#fOdo').focus(), 150);
+}
+function preview(){
+  const veh = $('#fVeh').value, odo = num($('#fOdo').value), paid = num($('#fPaid').value), price = num($('#fPrice').value), id = $('#fId').value;
+  const VL = sortLogs(S.data.logs.filter(l=>l.vehicleId===veh && l.id!==id)).sort((a,b)=>a.odo-b.odo);
+  const before = odo ? VL.filter(l=>l.odo < odo) : VL;
+  const lastLog = before[before.length-1];
+  $('#odoHint').textContent = lastLog ? `Terakhir ${f0(lastLog.odo)} km (${+lastLog.date.slice(8)} ${MONTHS[+lastLog.date.slice(5,7)-1]})` + (odo>lastLog.odo ? ` · +${f0(odo-lastLog.odo)} km` : '') : 'Rekod pertama kenderaan ini';
+  const litre = price>0 ? paid/price : 0;
+  $('#pvL').textContent = litre ? f2(litre) : '—';
+  let lastFull = null, accL = 0;
+  for (let i=before.length-1;i>=0;i--){ if (before[i].isian==='PENUH'){ lastFull = before[i]; break; } accL += before[i].litre; }
+  if (lastFull && odo > lastFull.odo){
+    const trip = odo - lastFull.odo; $('#pvTrip').textContent = f0(trip)+' km';
+    $('#pvKmL').textContent = F.isian==='PENUH' && litre ? f1(trip/(litre+accL)) : '—';
+  } else { $('#pvTrip').textContent = '—'; $('#pvKmL').textContent = '—'; }
+}
+async function saveLog(e){
+  e.preventDefault();
+  const id = $('#fId').value;
+  const p = { id: id || ('LOG'+Date.now()), vehicleId: $('#fVeh').value, date: $('#fDate').value, odo: num($('#fOdo').value), paid: num($('#fPaid').value),
+    price: num($('#fPrice').value), fuelType: F.fuel, isian: F.isian, owner: (F.fuel==='RON95' && F.cat==='BUDI') ? F.owner : '',
+    station: $('#fStation').value.trim(), notes: $('#fNotes').value.trim() };
+  const err = !p.date ? 'Tarikh diperlukan' : !(p.odo>0) ? 'Masukkan bacaan odometer' : !(p.paid>0) ? 'Masukkan jumlah bayar' : !(p.price>0) ? 'Masukkan harga seliter' : '';
+  if (err){ $('#logErr').textContent = err; return; }
+  if (!id){
+    const last = sortLogs(S.data.logs.filter(l=>l.vehicleId===p.vehicleId)).pop();
+    if (last && p.odo <= last.odo && !(await confirmBox('Odometer lebih rendah', `Bacaan ${f0(p.odo)} km tidak melebihi rekod terakhir (${f0(last.odo)} km). Simpan juga?`, 'Simpan'))) return;
+  }
+  const btn = $('#btnSaveLog'); btn.disabled = true; btn.innerHTML = '<span class="spin" style="width:18px;height:18px;margin:0;border-width:2px"></span>Menyimpan…';
+  const ok = await mutate('saveLog', p, id ? 'Rekod dikemaskini' : 'Isian disimpan');
+  btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2"></i>Simpan';
+  if (ok) $('#logSheet').close();
+}
+
+/* ---------- vehicles ---------- */
+const VCOL = { color:'', fuel:'RON95' };
+function openVeh(id){
+  const v = id && vehById(id);
+  $('#vehErr').textContent = '';
+  $('#vId').value = v ? v.id : ''; $('#vName').value = v ? v.name : ''; $('#vPlate').value = v ? v.plate : ''; $('#vModel').value = v ? v.model : '';
+  $('#vTank').value = v && v.tank ? v.tank : ''; $('#vActive').checked = v ? v.active : true;
+  VCOL.fuel = v ? v.fuelType : 'RON95';
+  VCOL.color = v && v.color && v.color.startsWith('var') ? v.color : SLOT(v ? vehIndex(v.id) : S.data.vehicles.length);
+  $('#vehTitle').textContent = v ? 'Kemaskini kenderaan' : 'Kenderaan baharu';
+  $('#btnDelVeh').classList.toggle('hidden', !v);
+  vehSegs();
+  $('#vehSheet').showModal();
+}
+function vehSegs(){
+  $('#segVFuel').innerHTML = FUELS.map(f=>`<button type="button" data-v="${f}" class="${VCOL.fuel===f?'on':''}">${f==='DIESEL'?'Diesel':f}</button>`).join('');
+  $('#vColors').innerHTML = [0,1,2,3,4,5,6,7].map(i=>`<button type="button" data-c="${SLOT(i)}" class="${VCOL.color===SLOT(i)?'on':''}" style="background:${SLOT(i)}" aria-label="Warna ${i+1}"></button>`).join('');
+}
+async function saveVeh(e){
+  e.preventDefault();
+  const p = { id: $('#vId').value, name: $('#vName').value.trim(), plate: $('#vPlate').value.trim().toUpperCase(), model: $('#vModel').value.trim(), tank: num($('#vTank').value), fuelType: VCOL.fuel, color: VCOL.color, active: $('#vActive').checked };
+  if (!p.name){ $('#vehErr').textContent = 'Nama kenderaan diperlukan'; return; }
+  if (await mutate('saveVehicle', p, 'Kenderaan disimpan')){ $('#vehSheet').close(); if ($('#setSheet').open) renderSettings(); }
+}
+
+/* ---------- settings ---------- */
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+function openSettings(reason){ renderSettings(reason); if (!$('#setSheet').open) $('#setSheet').showModal(); }
+function renderSettings(reason){
+  const s = S.data ? set() : {};
+  const theme = LS.get('theme', 'AUTO');
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const conn = `
+    <div class="set-group"><h3><i class="bi bi-link-45deg"></i> Sambungan</h3>
+      ${reason==='NO_API'?'<p class="err">Masukkan URL Web App Apps Script untuk mula.</p>':''}
+      ${reason==='PIN_REQUIRED'?'<p class="err">PIN diperlukan.</p>':''}
+      ${GAS?'':`<div class="field"><label for="sApi">URL Web App (…/exec)</label><input class="input" id="sApi" value="${esc(apiUrl())}" placeholder="https://script.google.com/macros/s/…/exec"></div>`}
+      <div class="field"><label for="sPin">PIN aplikasi</label><input class="input" id="sPin" type="password" inputmode="numeric" autocomplete="off" value="${esc(LS.get('pin',''))}"><span class="hint">Sama seperti APP_PIN dalam helaian SETTING. Kosongkan jika tiada.</span></div>
+      <button class="btn btn-primary" id="btnConn"><i class="bi bi-plug"></i>Sambung</button>
+    </div>`;
+  if (!S.data){ $('#setBody').innerHTML = conn; return; }
+  $('#setBody').innerHTML = `
+    <div class="set-group"><h3><i class="bi bi-car-front"></i> Kenderaan</h3>
+      ${S.data.vehicles.map(v=>`<button class="vrow" data-editveh="${esc(v.id)}"><span class="vdot" style="background:${vehColor(v.id)};width:12px;height:12px"></span><span style="flex:1"><b>${esc(v.name)}</b> ${v.active?'':'<span class="badge b-neutral">arkib</span>'}<br><span class="faint" style="font-size:.78rem">${esc([v.plate, v.model, v.fuelType].filter(Boolean).join(' · '))}</span></span><i class="bi bi-chevron-right faint"></i></button>`).join('')}
+      <button class="btn btn-ghost" style="width:100%" id="btnNewVeh"><i class="bi bi-plus-lg"></i>Tambah kenderaan</button>
+    </div>
+    <div class="set-group"><h3><i class="bi bi-tag"></i> Harga minyak (RM/L)</h3>
+      <div class="two">
+        <div class="field"><label for="sBudi">RON95 BUDI95</label><input class="input num" id="sBudi" type="number" step="0.01" value="${esc(s.RON95_BUDI_PRICE)}"></div>
+        <div class="field"><label for="sMarket">RON95 pasaran</label><input class="input num" id="sMarket" type="number" step="0.01" value="${esc(s.RON95_MARKET_PRICE)}"></div>
+        <div class="field"><label for="s97">RON97</label><input class="input num" id="s97" type="number" step="0.01" value="${esc(s.RON97_PRICE)}"></div>
+        <div class="field"><label for="sDiesel">Diesel</label><input class="input num" id="sDiesel" type="number" step="0.01" value="${esc(s.DIESEL_PRICE)}"></div>
+      </div>
+      <h3 style="margin-top:var(--s2)"><i class="bi bi-person-vcard"></i> BUDI95</h3>
+      <div class="field"><label for="sQuota">Kuota sebulan setiap MyKad</label><div class="input-suf"><input class="input num" id="sQuota" type="number" value="${esc(s.MONTHLY_BUDI_LITRE)}"><span>L</span></div></div>
+      <div class="field"><label for="sOwners">Nama pemilik MyKad</label><input class="input" id="sOwners" value="${esc(s.BUDI_NAMES)}"><span class="hint">Asingkan dengan koma, cth. OWN,AIN,OTHERS</span></div>
+      <button class="btn btn-primary" id="btnSaveSet"><i class="bi bi-check2"></i>Simpan tetapan</button>
+    </div>
+    <div class="set-group"><h3><i class="bi bi-circle-half"></i> Paparan</h3>
+      <div class="seg" id="segTheme">${[['AUTO','Auto'],['LIGHT','Terang'],['DARK','Gelap']].map(([v,t])=>`<button type="button" data-v="${v}" class="${theme===v?'on':''}">${t}</button>`).join('')}</div>
+    </div>
+    ${conn}
+    <div class="set-group"><h3><i class="bi bi-tools"></i> Alat</h3>
+      <div class="grid" style="gap:var(--s2)">
+        ${!GAS && !standalone ? `<button class="btn btn-ghost" id="btnInstall"><i class="bi bi-phone"></i>Pasang di telefon</button>${isIOS?'<p class="hint faint" style="margin:0">iPhone: tekan butang Kongsi di Safari → <b>Add to Home Screen</b>.</p>':''}` : ''}
+        <button class="btn btn-ghost" id="btnCsvAll"><i class="bi bi-filetype-csv"></i>Eksport semua rekod (CSV)</button>
+        <button class="btn btn-ghost" id="btnRecalc"><i class="bi bi-arrow-repeat"></i>Kira semula kecekapan</button>
+      </div>
+      <p class="faint" style="font-size:.75rem;margin:var(--s3) 0 0">Log Minyak v2 · ${S.data.logs.length} rekod · ${GAS?'Apps Script':'PWA'}</p>
+    </div>`;
+}
+function applyTheme(){
+  const t = LS.get('theme','AUTO');
+  if (t==='AUTO') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t==='DARK'?'dark':'light');
+}
+
+/* ---------- csv ---------- */
+function downloadCsv(L, name){
+  const head = ['Tarikh','Kenderaan','Odometer','Bayar (RM)','Minyak','RM/L','Liter','Isian','Trip (km)','km/L','RM/100km','Pemilik BUDI','Stesen','Nota'];
+  const rows = sortLogs(L).map(l=>[l.date, vehById(l.vehicleId)?.name||l.vehicleId, l.odo, l.paid, l.fuelType, l.price, (+l.litre).toFixed(2), l.isian, l.trip??'', l.kmL??'', l.rm100??'', l.owner, l.station, l.notes]);
+  const csv = [head].concat(rows).map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿'+csv], {type:'text/csv'})); a.download = name; a.click();
+}
+
+/* ---------- helpers ---------- */
+let toastT;
+function toast(msg, bad){ const t=$('#toast'); t.className='toast on'+(bad?' bad':''); t.innerHTML=`<i class="bi bi-${bad?'exclamation-circle':'check-circle'}"></i>${esc(msg)}`; clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), 2800); }
+function confirmBox(title, text, yes, danger){
+  return new Promise(res => {
+    $('#cfTitle').textContent = title; $('#cfText').textContent = text; $('#cfYes').textContent = yes || 'Ya'; $('#cfYes').className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+    const d = $('#confirmSheet'); d.showModal();
+    const done = v => { d.close(); $('#cfYes').onclick = $('#cfNo').onclick = null; res(v); };
+    $('#cfYes').onclick = () => done(true); $('#cfNo').onclick = () => done(false);
+  });
+}
+function go(view){
+  S.view = view;
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id==='v-'+view));
+  document.querySelectorAll('.nav [data-view]').forEach(b=>b.classList.toggle('on', b.dataset.view===view));
+  window.scrollTo({top:0});
+  render();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button, tr[data-log]'); if (!t) return;
+  if (t.dataset.view) return go(t.dataset.view);
+  if (t.dataset.goto) return go(t.dataset.goto);
+  if (t.dataset.veh){ S.veh = t.dataset.veh; LS.set('veh', S.veh); return render(); }
+  if (t.dataset.log) return openLog(t.dataset.log);
+  if (t.id==='btnAdd') return openLog();
+  if (t.id==='btnSettings') return openSettings();
+  if (t.id==='chipAddVeh' || t.id==='btnNewVeh') return openVeh();
+  if (t.dataset.editveh) return openVeh(t.dataset.editveh);
+  if (t.hasAttribute('data-close')) return t.closest('dialog').close();
+  if (t.dataset.fisian !== undefined){ S.logFilter.isian = t.dataset.fisian; return renderLogs(); }
+  if (t.dataset.fowner !== undefined){ S.logFilter.owner = S.logFilter.owner===t.dataset.fowner ? '' : t.dataset.fowner; return renderLogs(); }
+  if (t.dataset.year){ S.year = +t.dataset.year; return renderMonth(); }
+  if (t.dataset.range !== undefined){ S.range = +t.dataset.range; LS.set('range', S.range); return renderCharts(); }
+  if (t.id==='btnCsv') return downloadCsv(scoped().filter(l=>+l.date.slice(0,4)===S.year), `log-minyak-${S.year}.csv`);
+  if (t.id==='btnCsvAll') return downloadCsv(S.data.logs, 'log-minyak-semua.csv');
+  if (t.id==='btnSyncNow') return flushQueue();
+  // segmented controls in log form
+  const seg = t.closest('.seg');
+  if (seg && seg.id==='segFuel'){ F.fuel = t.dataset.v; const p = priceFor(F.fuel, F.cat); if (p!=null) $('#fPrice').value = p; segs(); return preview(); }
+  if (seg && seg.id==='segCat'){ F.cat = t.dataset.v; const p = priceFor(F.fuel, F.cat); if (p!=null) $('#fPrice').value = p; else { $('#fPrice').value=''; $('#fPrice').focus(); } segs(); return preview(); }
+  if (seg && seg.id==='segIsian'){ F.isian = t.dataset.v; segs(); return preview(); }
+  if (seg && seg.id==='segOwner'){ F.owner = t.dataset.v; return segs(); }
+  if (seg && seg.id==='segVFuel'){ VCOL.fuel = t.dataset.v; return vehSegs(); }
+  if (seg && seg.id==='segTheme'){ LS.set('theme', t.dataset.v); applyTheme(); renderSettings(); return render(); }
+  if (t.dataset.c){ VCOL.color = t.dataset.c; return vehSegs(); }
+  if (t.id==='btnDelLog'){
+    const id = $('#fId').value;
+    if (await confirmBox('Padam rekod?', 'Rekod isian ini akan dipadam dari helaian. Tindakan ini tidak boleh dibatalkan.', 'Padam', true))
+      if (await mutate('deleteLog', {id}, 'Rekod dipadam')) $('#logSheet').close();
+    return;
+  }
+  if (t.id==='btnDelVeh'){
+    const id = $('#vId').value, used = S.data.logs.some(l=>l.vehicleId===id);
+    if (await confirmBox(used?'Arkibkan kenderaan?':'Padam kenderaan?', used ? 'Kenderaan ini ada rekod, jadi ia akan diarkibkan (rekod kekal).' : 'Kenderaan ini akan dipadam.', used?'Arkibkan':'Padam', !used))
+      if (await mutate('deleteVehicle', {id}, used?'Kenderaan diarkibkan':'Kenderaan dipadam')){ $('#vehSheet').close(); renderSettings(); }
+    return;
+  }
+  if (t.id==='btnSaveSet'){
+    const p = { RON95_BUDI_PRICE:$('#sBudi').value, RON95_MARKET_PRICE:$('#sMarket').value, RON97_PRICE:$('#s97').value, DIESEL_PRICE:$('#sDiesel').value, MONTHLY_BUDI_LITRE:$('#sQuota').value, BUDI_NAMES:$('#sOwners').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean).join(',') };
+    t.disabled = true; await mutate('saveSettings', p, 'Tetapan disimpan'); t.disabled = false; return;
+  }
+  if (t.id==='btnConn'){
+    if (!GAS) LS.set('api', $('#sApi').value.trim());
+    LS.set('pin', $('#sPin').value.trim());
+    $('#setSheet').close(); $('#boot').classList.remove('hidden'); return load();
+  }
+  if (t.id==='btnRecalc'){ t.disabled = true; await mutate('recalc', {}, 'Kecekapan dikira semula'); t.disabled = false; return; }
+  if (t.id==='btnInstall'){
+    if (deferredInstall){ deferredInstall.prompt(); deferredInstall = null; }
+    else toast('Guna menu pelayar → "Install app" / "Add to Home screen"');
+  }
+});
+$('#logForm').addEventListener('submit', saveLog);
+$('#vehForm').addEventListener('submit', saveVeh);
+['#fOdo','#fPaid','#fPrice','#fVeh'].forEach(s=>$(s).addEventListener('input', preview));
+$('#fVeh').addEventListener('change', () => { const v = vehById($('#fVeh').value); if (v && !$('#fId').value){ F.fuel = v.fuelType||'RON95'; const p=priceFor(F.fuel,F.cat); if(p!=null) $('#fPrice').value=p; segs(); } preview(); });
+$('#q').addEventListener('input', () => renderLogs());
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => render());
+
+/* ---------- boot ---------- */
+applyTheme();
+document.querySelector('#v-home').classList.add('on');
+if (S.data){ applyQueueToView(); render(); }
+load().then(() => { if (/[?&]add=1/.test(location.search) && S.data) openLog(); });
+if (!GAS && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
