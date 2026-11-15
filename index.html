@@ -211,6 +211,15 @@ dialog.sheet[open]{animation:up .22s ease}
 .btn-danger{background:var(--bad-soft);color:var(--bad)}
 .btn-row{display:flex;gap:var(--s2)}
 .err{color:var(--bad);font-size:.8rem;font-weight:600}
+.scan{margin-bottom:var(--s4)}
+.btn-scan{width:100%;background:var(--primary-soft);color:var(--primary-text);border:1.5px dashed color-mix(in srgb,var(--primary) 45%,transparent)}
+.btn-scan:disabled{opacity:.6;cursor:progress}
+.scan-status{display:flex;flex-direction:column;gap:6px;margin-top:var(--s2)}
+.scan-status:empty{display:none}
+.scan-item{display:flex;gap:8px;align-items:flex-start;font-size:.82rem;padding:8px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+.scan-item i{margin-top:1px}
+.scan-item.ok i{color:var(--good)} .scan-item.bad i{color:var(--bad)}
+.input.filled{border-color:var(--good);box-shadow:0 0 0 3px var(--good-soft)}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .swatches button{width:34px;height:34px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--border)}
 .swatches button.on{box-shadow:0 0 0 2px var(--text)}
@@ -282,6 +291,11 @@ dialog.sheet[open]{animation:up .22s ease}
   <div class="sheet-h"><h2 id="logTitle">Isian baharu</h2><button class="icon-btn" data-close aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
   <form class="sheet-b" id="logForm" novalidate>
     <input type="hidden" id="fId">
+    <div class="scan" id="scanBox">
+      <button type="button" class="btn btn-scan" id="btnScan"><i class="bi bi-camera"></i>Imbas gambar resit / odometer</button>
+      <input type="file" id="scanFile" accept="image/*" multiple hidden>
+      <div class="scan-status" id="scanStatus" aria-live="polite"></div>
+    </div>
     <div class="field"><label for="fVeh">Kenderaan</label><select class="input" id="fVeh"></select></div>
     <div class="two">
       <div class="field"><label for="fDate">Tarikh</label><input class="input" type="date" id="fDate" required></div>
@@ -952,6 +966,7 @@ function openLog(id){
     $('#fPrice').value = priceFor(F.fuel, F.cat) ?? '';
     $('#btnDelLog').classList.add('hidden');
   }
+  $('#scanStatus').innerHTML = '';
   segs(); preview();
   $('#logSheet').showModal();
   if (!l) setTimeout(()=>$('#fOdo').focus(), 150);
@@ -987,6 +1002,118 @@ async function saveLog(e){
   const ok = await mutate('saveLog', p, id ? 'Rekod dikemaskini' : 'Isian disimpan');
   btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2"></i>Simpan';
   if (ok) $('#logSheet').close();
+}
+
+/* ---------- photo scan (OCR) ---------- */
+/*OCR-PARSE-START*/
+function ocrNum(s){ return parseFloat(String(s).replace(',', '.')); }
+function near(a, b, tol){ return a!=null && b!=null && Math.abs(a-b) <= tol; }
+function parseOdo(text, lastOdo){
+  let t = String(text).replace(/(\d)[Oo]/g,'$10').replace(/[Oo](\d)/g,'0$1').replace(/(\d)[ ,.](\d{3})(?!\d)/g,'$1$2');
+  const odoLabel = /ODO\D{0,15}(\d{3,7})/i.exec(t);
+  if (odoLabel) return +odoLabel[1];
+  const cands = [];
+  const re = /(\d{3,7})(\s*km)?/gi; let m;
+  while ((m = re.exec(t))){
+    const n = +m[1], lineStart = t.lastIndexOf(String.fromCharCode(10), m.index - 1) + 1, before = t.slice(Math.max(lineStart, m.index-14), m.index);
+    if (/range|trip|baki|jarak|avg|purata|km\/h|rpm/i.test(before)) continue;
+    if (/^\s*km\/h/i.test(t.slice(m.index + m[0].length))) continue;
+    cands.push({ n, km: !!m[2] });
+  }
+  if (!cands.length) return null;
+  if (lastOdo){
+    const ok = cands.filter(c => c.n >= lastOdo && c.n <= lastOdo + 3000).sort((a,b)=>a.n-b.n);
+    if (ok.length) return ok[0].n;
+  }
+  const km = cands.filter(c => c.km && c.n >= 1000);
+  return (km.length ? km : cands).reduce((a,b)=> b.n > a.n ? b : a).n;
+}
+function parseReceipt(text, st){
+  const t = String(text).replace(/ /g,' ');
+  const budiP = ocrNum(st.RON95_BUDI_PRICE) || 1.99, marketP = ocrNum(st.RON95_MARKET_PRICE) || 0;
+  const litres = [], units = new Set(), amounts = [];
+  let m;
+  const reL = /(\d{1,3}[.,]\d{1,3})\s*(?:L\b|ℓ|liter|litre)/gi; while ((m = reL.exec(t))) litres.push(ocrNum(m[1]));
+  const reU = /(?:RM\s*)?(\d{1,2}[.,]\d{2})\s*\/\s*(?:L\b|liter|litre)/gi; while ((m = reU.exec(t))) units.add(ocrNum(m[1]));
+  const reX = /[x×]\s*RM\s*(\d{1,2}[.,]\d{2})/gi; while ((m = reX.exec(t))) units.add(ocrNum(m[1]));
+  const reA = /(-?)RM\s*(\d{1,4}[.,]\d{2})(?!\s*\/\s*L)/gi;
+  while ((m = reA.exec(t))){ const v = ocrNum(m[2]); if (!m[1] && !units.has(v)) amounts.push(v); }
+  const budi = /BUDI/i.test(t);
+  const fuel = /RON\s?97|V-?Power\s*Racing|Primax\s*97/i.test(t) ? 'RON97' : /diesel|euro\s*5\s*B|dynamic\s*diesel/i.test(t) ? 'DIESEL' : 'RON95';
+  const L = litres.length ? litres.sort((a,b)=> litres.filter(x=>x===b).length - litres.filter(x=>x===a).length)[0] : null;
+  const pick = target => amounts.filter(a => near(a, target, Math.max(0.15, target*0.006))).sort((a,b)=>Math.abs(a-target)-Math.abs(b-target))[0];
+  const labelled = re => { const r = re.exec(t); return r ? ocrNum(r[1]) : null; };
+  let price = null, paid = null, cat = 'OTHER';
+  if (budi && fuel === 'RON95'){
+    price = [...units].find(u => near(u, budiP, 0.006)) || budiP; cat = 'BUDI';
+    paid = L ? pick(L*price) : null;
+  } else {
+    const ul = [...units].sort((a,b)=>b-a);
+    for (const u of ul){ const p = L ? pick(L*u) : null; if (p){ price = u; paid = p; break; } }
+    if (!price) price = ul[0] || null;
+    if (price && near(price, marketP, 0.006)) cat = 'MARKET';
+  }
+  if (!paid) paid = labelled(/(?:you paid|amount paid|total paid|jumlah (?:dibayar|bayaran)|grand total|total)\D{0,20}RM\s*(\d{1,4}[.,]\d{2})/i);
+  if (!price && paid && L) price = Math.round(paid / L * 100) / 100;
+  let date = null;
+  const d1 = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](20\d{2})/.exec(t);
+  const MON = {jan:1,feb:2,mar:3,mac:3,apr:4,may:5,mei:5,jun:6,jul:7,aug:8,ogo:8,sep:9,oct:10,okt:10,nov:11,dec:12,dis:12};
+  const d2 = /(\d{1,2})\s+(jan|feb|mar|mac|apr|may|mei|jun|jul|aug|ogo|sep|oct|okt|nov|dec|dis)[a-z]*\s+(20\d{2})/i.exec(t);
+  if (d1) date = d1[3]+'-'+d1[2].padStart(2,'0')+'-'+d1[1].padStart(2,'0');
+  else if (d2) date = d2[3]+'-'+String(MON[d2[2].toLowerCase()]).padStart(2,'0')+'-'+d2[1].padStart(2,'0');
+  const stn = /\b(PETRONAS|Shell|Caltex|BHPetrol|Petron)\b[^\n]{0,28}/i.exec(t);
+  return { paid, price, litre: L, cat, fuel, date, station: stn ? stn[0].trim() : '', budi };
+}
+function looksLikeReceipt(text){ return /RM\s*\d|litre|liter|\d\s*L\s*[x×]|subsidy|you paid|jumlah/i.test(text); }
+/*OCR-PARSE-END*/
+
+function shrinkImage(file){
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Gambar tidak dapat dibaca')); };
+    img.src = url;
+  });
+}
+function markFilled(id){ const el = $(id); el.classList.add('filled'); setTimeout(()=>el.classList.remove('filled'), 4000); }
+function scanNote(ok, html){ $('#scanStatus').insertAdjacentHTML('beforeend', `<div class="scan-item ${ok?'ok':'bad'}"><i class="bi bi-${ok?'check-circle-fill':'exclamation-circle-fill'}"></i><span>${html}</span></div>`); }
+async function scanImages(files){
+  if (!files.length) return;
+  if (!GAS && !navigator.onLine) return toast('Imbas gambar perlukan internet', true);
+  const btn = $('#btnScan'); btn.disabled = true; $('#scanStatus').innerHTML = '';
+  for (const file of files){
+    btn.innerHTML = '<span class="spin" style="width:18px;height:18px;margin:0;border-width:2px"></span>Membaca gambar…';
+    try{
+      const image = await shrinkImage(file);
+      const { text } = await call('ocr', { image, mime: 'image/jpeg' });
+      if (looksLikeReceipt(text)){
+        const r = parseReceipt(text, set());
+        if (!r.paid && !r.price){ scanNote(false, 'Resit dikesan tetapi jumlah tidak dapat dibaca. Sila isi manual.'); continue; }
+        F.fuel = r.fuel; if (r.fuel === 'RON95') F.cat = r.cat;
+        if (r.price){ $('#fPrice').value = r.price; markFilled('#fPrice'); }
+        if (r.paid){ $('#fPaid').value = r.paid; markFilled('#fPaid'); }
+        if (r.date && !$('#fId').value){ $('#fDate').value = r.date; markFilled('#fDate'); }
+        if (r.station && !$('#fStation').value) $('#fStation').value = r.station;
+        segs(); preview();
+        scanNote(true, `Resit: <b>RM ${f2(r.paid)}</b>${r.litre?` · ${f2(r.litre)} L`:''} · RM ${f2(r.price)}/L${r.cat==='BUDI'?' · BUDI95':''}`);
+      } else {
+        const veh = $('#fVeh').value, last = sortLogs(S.data.logs.filter(l=>l.vehicleId===veh && l.id!==$('#fId').value)).pop();
+        const odo = parseOdo(text, last ? last.odo : 0);
+        if (!odo){ scanNote(false, 'Bacaan odometer tidak dijumpai. Cuba gambar lebih dekat & jelas.'); continue; }
+        $('#fOdo').value = odo; markFilled('#fOdo'); preview();
+        const warn = last && (odo <= last.odo || odo - last.odo > 2500);
+        scanNote(!warn, `Odometer: <b>${f0(odo)} km</b>${last ? ` (+${f0(odo-last.odo)} km)` : ''}${warn ? ' — sila semak' : ''}`);
+      }
+    }catch(e){
+      scanNote(false, /Drive|not defined|permission|authoriz/i.test(e.message) ? 'Fungsi imbas belum diaktifkan di Apps Script.' : esc(e.message));
+    }
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="bi bi-camera"></i>Imbas gambar resit / odometer';
 }
 
 /* ---------- vehicles ---------- */
@@ -1162,6 +1289,8 @@ document.addEventListener('click', async e => {
 $('#logForm').addEventListener('submit', saveLog);
 $('#vehForm').addEventListener('submit', saveVeh);
 $('#svcForm').addEventListener('submit', saveService);
+$('#btnScan').addEventListener('click', () => $('#scanFile').click());
+$('#scanFile').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; scanImages(fs); });
 ['#sLabour','#sParts'].forEach(q=>$(q).addEventListener('input', () => { const a=$('#sLabour').value, b=$('#sParts').value; if (a!==''||b!=='') $('#sTotal').value = (num(a)+num(b)).toFixed(2); }));
 ['#fOdo','#fPaid','#fPrice','#fVeh'].forEach(s=>$(s).addEventListener('input', preview));
 $('#fVeh').addEventListener('change', () => { const v = vehById($('#fVeh').value); if (v && !$('#fId').value){ F.fuel = v.fuelType||'RON95'; const p=priceFor(F.fuel,F.cat); if(p!=null) $('#fPrice').value=p; segs(); } preview(); });
